@@ -17,11 +17,11 @@ package l9g.app.ldap2nextcloud.nextcloud;
 
 import io.netty.handler.codec.http.HttpResponse;
 import java.util.List;
-import l9g.app.ldap2nextcloud.model.ZammadAnonymousUser;
-import l9g.app.ldap2nextcloud.model.ZammadGroup;
-import l9g.app.ldap2nextcloud.model.ZammadOrganization;
-import l9g.app.ldap2nextcloud.model.ZammadRole;
-import l9g.app.ldap2nextcloud.model.ZammadUser;
+import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
+import l9g.app.ldap2nextcloud.model.NextcloudGroup;
+import l9g.app.ldap2nextcloud.model.NextcloudOrganization;
+import l9g.app.ldap2nextcloud.model.NextcloudRole;
+import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.DeleteExchange;
@@ -36,19 +36,19 @@ import org.springframework.web.service.annotation.PutExchange;
 public interface NextcloudClient
 {
   @GetExchange("/api/v1/groups")
-  public List<ZammadGroup> groups();
+  public List<NextcloudGroup> groups();
 
   @GetExchange("/api/v1/organizations")
-  public List<ZammadOrganization> organizations();
+  public List<NextcloudOrganization> organizations();
 
   @GetExchange("/api/v1/roles?page={page}&per_page={perPage}")
-  public List<ZammadRole> roles(
+  public List<NextcloudRole> roles(
     @PathVariable("page") int page,
     @PathVariable("perPage") int perPage
   );
 
   @GetExchange("/api/v1/users?page={page}&per_page={perPage}")
-  public List<ZammadUser> users(
+  public List<NextcloudUser> users(
     @PathVariable("page") int page,
     @PathVariable("perPage") int perPage
   );
@@ -70,18 +70,18 @@ public interface NextcloudClient
     - limit
    */
   @GetExchange("/api/v1/users/search?query={query}")
-  public List<ZammadUser> usersSearch(
+  public List<NextcloudUser> usersSearch(
     @PathVariable("query") String query
   );
 
   @GetExchange("/api/v1/users/search?query={property}:{search}")
-  public List<ZammadUser> usersSearch(
+  public List<NextcloudUser> usersSearch(
     @PathVariable("property") String property,
     @PathVariable("search") String search
   );
 
   @GetExchange("/api/v1/users/search?query={property}:{search}&limit={limit}")
-  public List<ZammadUser> usersSearch(
+  public List<NextcloudUser> usersSearch(
     @PathVariable("property") String property,
     @PathVariable("search") String search,
     @PathVariable("limit") int limit
@@ -91,17 +91,17 @@ public interface NextcloudClient
   public HttpResponse usersDelete(@PathVariable(name = "id") int id);
 
   @PutExchange("/api/v1/users/{id}")
-  public ZammadUser usersUpdate(@PathVariable(name = "id") int id,
-    @RequestBody ZammadUser user);
+  public NextcloudUser usersUpdate(@PathVariable(name = "id") int id,
+    @RequestBody NextcloudUser user);
 
   @PutExchange("/api/v1/users/{id}")
-  public ZammadUser usersAnonymize(@PathVariable(name = "id") int id,
-    @RequestBody ZammadAnonymousUser user);
+  public NextcloudUser usersAnonymize(@PathVariable(name = "id") int id,
+    @RequestBody NextcloudAnonymousUser user);
 
   @PostExchange("/api/v1/users")
-  public ZammadUser usersCreate(@RequestBody ZammadUser user);
+  public NextcloudUser usersCreate(@RequestBody NextcloudUser user);
 
   @GetExchange("/api/v1/users/me")
-  public ZammadUser me();
+  public NextcloudUser me();
 
 }

@@ -33,7 +33,7 @@ import lombok.ToString;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ZammadGroup
+public class NextcloudGroup
 {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private Integer id;

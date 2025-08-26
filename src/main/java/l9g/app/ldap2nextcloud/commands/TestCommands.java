@@ -22,8 +22,8 @@ import com.unboundid.ldap.sdk.Entry;
 import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
-import l9g.app.ldap2nextcloud.model.ZammadAnonymousUser;
-import l9g.app.ldap2nextcloud.model.ZammadUser;
+import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
+import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class TestCommands
       {
         Entry entry = ldapHandler.getLdapEntryMap().get(login);
         System.out.println("\n" + entry);
-        ZammadUser user = new ZammadUser();
+        NextcloudUser user = new NextcloudUser();
         user.setLogin(login);
         js.getValue().executeVoid("test", user, entry);
         System.out.println(objectMapper.writeValueAsString(user));
@@ -73,7 +73,7 @@ public class TestCommands
   public void testAnonymousUser() throws Throwable
   {
     ObjectMapper objectMapper = new ObjectMapper();
-    ZammadAnonymousUser user = new ZammadAnonymousUser("eid9519122");
+    NextcloudAnonymousUser user = new NextcloudAnonymousUser("eid9519122");
     System.out.println("user=" + objectMapper.writeValueAsString(user));
   }
 

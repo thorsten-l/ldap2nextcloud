@@ -34,7 +34,7 @@ import lombok.ToString;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ZammadUser
+public class NextcloudUser
 {
 
   public boolean hasAnyRoles(List<Integer> roleIds)
@@ -121,7 +121,7 @@ public class ZammadUser
 
   private Object out_of_office_replacement_id;
    */
-  private ZammadPreferences preferences;
+  private NextcloudPreferences preferences;
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private Integer updated_by_id;

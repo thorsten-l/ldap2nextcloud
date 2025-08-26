@@ -31,7 +31,7 @@ import lombok.ToString;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ZammadPreferences
+public class NextcloudPreferences
 {
   private String locale;
 

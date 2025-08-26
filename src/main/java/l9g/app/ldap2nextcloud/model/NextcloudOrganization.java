@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -34,16 +33,18 @@ import lombok.ToString;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ZammadRole
+public class NextcloudOrganization
 {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private Integer id;
 
   private String name;
 
-  // private Preferences preferences;
-  //
-  private Boolean default_at_signup;
+  private Boolean shared;
+
+  private String domain;
+
+  private Boolean domain_assignment;
 
   private Boolean active;
 
@@ -61,9 +62,9 @@ public class ZammadRole
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private Date updated_at;
 
-  private List<Integer> permission_ids;
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private List<Integer> member_ids;
 
-  private List<Integer> knowledge_base_permission_ids;
-
-  private Map<String, String[]> group_ids;
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private List<Integer> secondary_member_ids;
 }

@@ -24,7 +24,7 @@ import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.TimestampUtil;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
-import l9g.app.ldap2nextcloud.model.ZammadUser;
+import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import l9g.app.ldap2nextcloud.handler.NextcloudHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +101,7 @@ public class ApplicationCommands
     LOGGER.info( "looking for users to delete");
     ldapHandler.readAllLdapEntryUIDs();
     
-    for (ZammadUser user : zammadHandler.getZammadUsersList())
+    for (NextcloudUser user : zammadHandler.getZammadUsersList())
     {
       if (!ldapHandler.getLdapEntryMap().containsKey(user.getLogin()))
       {
@@ -146,9 +146,9 @@ public class ApplicationCommands
         entryCounter++;
         LOGGER.debug("{}/{}", entryCounter, noEntries);
         String login = entry.getAttributeValue(config.getLdapUserId());
-        ZammadUser zammadUser = zammadHandler.getZammadUsersMap().get(login);
+        NextcloudUser zammadUser = zammadHandler.getZammadUsersMap().get(login);
         ArrayList<String> roles = new ArrayList<>();
-        ZammadUser updateUser = new ZammadUser();
+        NextcloudUser updateUser = new NextcloudUser();
         updateUser.setLogin(login);
         updateUser.setRoles(roles);
 

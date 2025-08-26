@@ -29,9 +29,9 @@ import lombok.ToString;
 @ToString
 @Getter
 @JsonInclude(JsonInclude.Include.ALWAYS)
-public class ZammadAnonymousUser
+public class NextcloudAnonymousUser
 {
-  public ZammadAnonymousUser( String login )
+  public NextcloudAnonymousUser( String login )
   {
     this.login = this.firstname = this.lastname = login;
     this.email = login + "@anonymous.net";
@@ -86,7 +86,7 @@ public class ZammadAnonymousUser
 
   private Integer out_of_office_replacement_id;
  
-  private ZammadPreferences preferences;
+  private NextcloudPreferences preferences;
 
   // additional attributes
   private String customernumber;

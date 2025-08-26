@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import l9g.app.ldap2nextcloud.Config;
-import l9g.app.ldap2nextcloud.model.ZammadAnonymousUser;
-import l9g.app.ldap2nextcloud.model.ZammadRole;
-import l9g.app.ldap2nextcloud.model.ZammadUser;
+import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
+import l9g.app.ldap2nextcloud.model.NextcloudRole;
+import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class NextcloudHandler
     LOGGER.debug("readZammadRoles");
     
     zammadRoleList = new ArrayList<>();
-    List<ZammadRole> rolesResult;
+    List<NextcloudRole> rolesResult;
     int page = 1;
     while((rolesResult = zammadClient.roles(page,100)) != null 
       && !rolesResult.isEmpty())
@@ -74,7 +74,7 @@ public class NextcloudHandler
     
     LOGGER.debug("readZammadUsers");
     zammadUsersList = new ArrayList<>();
-    List<ZammadUser> usersResult;
+    List<NextcloudUser> usersResult;
     page = 1;
     while((usersResult = zammadClient.users(page, 100)) != null
       && !usersResult.isEmpty())
@@ -89,7 +89,7 @@ public class NextcloudHandler
     LOGGER.info("loaded {} zammad users", zammadUsersList.size());
   }
 
-  public ZammadUser createUser(ZammadUser user)
+  public NextcloudUser createUser(NextcloudUser user)
   {
     if (config.isDryRun())
     {
@@ -111,7 +111,7 @@ public class NextcloudHandler
     return user;
   }
 
-  public ZammadUser updateUser(ZammadUser user)
+  public NextcloudUser updateUser(NextcloudUser user)
   {
     if (config.isDryRun())
     {
@@ -133,9 +133,9 @@ public class NextcloudHandler
     return user;
   }
 
-  public void deleteUser(ZammadUser user)
+  public void deleteUser(NextcloudUser user)
   {
-    ZammadAnonymousUser anonymizedUser = new ZammadAnonymousUser(user.getLogin());
+    NextcloudAnonymousUser anonymizedUser = new NextcloudAnonymousUser(user.getLogin());
     
     if (config.isDryRun())
     {
@@ -176,14 +176,14 @@ public class NextcloudHandler
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Getter
-  private final Map<String, ZammadUser> zammadUsersMap = new HashMap<>();
+  private final Map<String, NextcloudUser> zammadUsersMap = new HashMap<>();
 
   @Getter
-  private List<ZammadUser> zammadUsersList;
+  private List<NextcloudUser> zammadUsersList;
   
   @Getter
-  private final Map<Integer, ZammadRole> zammadRoleMap = new HashMap<>();
+  private final Map<Integer, NextcloudRole> zammadRoleMap = new HashMap<>();
 
   @Getter
-  private List<ZammadRole> zammadRoleList;
+  private List<NextcloudRole> zammadRoleList;
 }
