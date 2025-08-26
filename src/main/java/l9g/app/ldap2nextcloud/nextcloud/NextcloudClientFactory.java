@@ -46,7 +46,7 @@ public class NextcloudClientFactory
   private CryptoHandler cryptoHandler;
 
   @Bean
-  public NextcloudClient createZammadClient() throws SSLException
+  public NextcloudClient createNextcloudClient() throws SSLException
   {
     LOGGER.debug("createZammadClient");
     var webClientBuilder = WebClient.builder();

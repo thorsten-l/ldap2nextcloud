@@ -54,7 +54,7 @@ public class ApplicationCommands
   @Autowired
   private LogbackConfig logbackConfig;
 
-  @Command(description = "sync users from LDAP to Zammad")
+  @Command(description = "sync users from LDAP to Nextcloud")
   public void sync(
     @Option(longNames = "full-sync", defaultValue = "false") boolean fullSync,
     @Option(longNames = "dry-run", defaultValue = "false") boolean dryRun,
@@ -94,14 +94,14 @@ public class ApplicationCommands
     
     TimestampUtil timestampUtil = new TimestampUtil("zammad-users");
 
-    zammadHandler.readZammadRolesAndUsers();
+    zammadHandler.readNextcloudRolesAndUsers();
 
     ///////////////////////////////////////////////////////////////////////////
     // DELETE
     LOGGER.info( "looking for users to delete");
     ldapHandler.readAllLdapEntryUIDs();
     
-    for (NextcloudUser user : zammadHandler.getZammadUsersList())
+    for (NextcloudUser user : zammadHandler.getNextcloudUsersList())
     {
       if (!ldapHandler.getLdapEntryMap().containsKey(user.getLogin()))
       {
@@ -146,7 +146,7 @@ public class ApplicationCommands
         entryCounter++;
         LOGGER.debug("{}/{}", entryCounter, noEntries);
         String login = entry.getAttributeValue(config.getLdapUserId());
-        NextcloudUser zammadUser = zammadHandler.getZammadUsersMap().get(login);
+        NextcloudUser zammadUser = zammadHandler.getNextcloudUsersMap().get(login);
         ArrayList<String> roles = new ArrayList<>();
         NextcloudUser updateUser = new NextcloudUser();
         updateUser.setLogin(login);
@@ -155,7 +155,7 @@ public class ApplicationCommands
         if (config.getSyncDefaultRoleId() != null)
         {
           String defaultRoleName = 
-            zammadHandler.getZammadRoleMap().get(config.getSyncDefaultRoleId()).getName();
+            zammadHandler.getNextcloudRoleMap().get(config.getSyncDefaultRoleId()).getName();
           
           roles.add(defaultRoleName);
         }
@@ -179,7 +179,7 @@ public class ApplicationCommands
               zammadUser.getRole_ids().forEach(roleId ->
               {
                 String roleName
-                  = zammadHandler.getZammadRoleMap().get(roleId).getName();
+                  = zammadHandler.getNextcloudRoleMap().get(roleId).getName();
                 
                 if (!roleId.equals(config.getSyncDefaultRoleId())
                   && !roleName.startsWith(config.getSyncRolesTag()))

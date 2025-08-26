@@ -46,47 +46,47 @@ public class NextcloudHandler
   private Config config;
 
   @Autowired
-  private NextcloudClient zammadClient;
+  private NextcloudClient nextcloudClient;
 
   @Bean
-  public NextcloudHandler zammadHandlerBean()
+  public NextcloudHandler nextcloudHandlerBean()
   {
-    LOGGER.debug("getZammadHandler");
+    LOGGER.debug("getNextcloudHandler");
     return this;
   }
 
-  public void readZammadRolesAndUsers()
+  public void readNextcloudRolesAndUsers()
   {
-    LOGGER.debug("readZammadRoles");
+    LOGGER.debug("readNextcloudRoles");
     
-    zammadRoleList = new ArrayList<>();
+    nextcloudRoleList = new ArrayList<>();
     List<NextcloudRole> rolesResult;
     int page = 1;
-    while((rolesResult = zammadClient.roles(page,100)) != null 
+    while((rolesResult = nextcloudClient.roles(page,100)) != null 
       && !rolesResult.isEmpty())
     {
-      zammadRoleList.addAll(rolesResult);
+      nextcloudRoleList.addAll(rolesResult);
       page++;
     }
-    zammadRoleMap.clear();
-    zammadRoleList.forEach(role -> zammadRoleMap.put(role.getId(), role));
-    LOGGER.info("loaded {} zammad roles", zammadRoleList.size());
+    nextcloudRoleMap.clear();
+    nextcloudRoleList.forEach(role -> nextcloudRoleMap.put(role.getId(), role));
+    LOGGER.info("loaded {} nextcloud roles", nextcloudRoleList.size());
     
-    LOGGER.debug("readZammadUsers");
-    zammadUsersList = new ArrayList<>();
+    LOGGER.debug("readNextcloudUsers");
+    nextcloudUsersList = new ArrayList<>();
     List<NextcloudUser> usersResult;
     page = 1;
-    while((usersResult = zammadClient.users(page, 100)) != null
+    while((usersResult = nextcloudClient.users(page, 100)) != null
       && !usersResult.isEmpty())
     {
-      zammadUsersList.addAll(usersResult);
+      nextcloudUsersList.addAll(usersResult);
       page++;
     }
     
-    zammadUsersMap.clear();
-    zammadUsersList.forEach(user -> zammadUsersMap.put(user.getLogin(), user));
+    nextcloudUsersMap.clear();
+    nextcloudUsersList.forEach(user -> nextcloudUsersMap.put(user.getLogin(), user));
 
-    LOGGER.info("loaded {} zammad users", zammadUsersList.size());
+    LOGGER.info("loaded {} nextcloud users", nextcloudUsersList.size());
   }
 
   public NextcloudUser createUser(NextcloudUser user)
@@ -100,7 +100,7 @@ public class NextcloudHandler
       LOGGER.info("CREATE: {}", user);
       try
       {
-        user = zammadClient.usersCreate(user);
+        user = nextcloudClient.usersCreate(user);
       }
       catch (Throwable t)
       {
@@ -122,7 +122,7 @@ public class NextcloudHandler
       try
       {
         LOGGER.info("UPDATE: {}", objectMapper.writeValueAsString(user));
-        user = zammadClient.usersUpdate(user.getId(), user);
+        user = nextcloudClient.usersUpdate(user.getId(), user);
       }
       catch (Throwable t)
       {
@@ -148,8 +148,8 @@ public class NextcloudHandler
       LOGGER.info("DELETE (anonymize): {}", anonymizedUser);
       try
       {
-        // zammadClient.usersDelete(user.getId());
-        zammadClient.usersAnonymize(user.getId(), anonymizedUser);
+        // nextcloudClient.usersDelete(user.getId());
+        nextcloudClient.usersAnonymize(user.getId(), anonymizedUser);
       }
       catch (Throwable t)
       {
@@ -176,14 +176,14 @@ public class NextcloudHandler
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Getter
-  private final Map<String, NextcloudUser> zammadUsersMap = new HashMap<>();
+  private final Map<String, NextcloudUser> nextcloudUsersMap = new HashMap<>();
 
   @Getter
-  private List<NextcloudUser> zammadUsersList;
+  private List<NextcloudUser> nextcloudUsersList;
   
   @Getter
-  private final Map<Integer, NextcloudRole> zammadRoleMap = new HashMap<>();
+  private final Map<Integer, NextcloudRole> nextcloudRoleMap = new HashMap<>();
 
   @Getter
-  private List<NextcloudRole> zammadRoleList;
+  private List<NextcloudRole> nextcloudRoleList;
 }
