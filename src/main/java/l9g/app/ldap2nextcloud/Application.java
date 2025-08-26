@@ -39,7 +39,7 @@ public class Application
   @Bean
   public PromptProvider createPromptProvider()
   {
-    return () -> new AttributedString("ldap2zammad:>",
+    return () -> new AttributedString("ldap2nextcloud:>",
       AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
   }
 
