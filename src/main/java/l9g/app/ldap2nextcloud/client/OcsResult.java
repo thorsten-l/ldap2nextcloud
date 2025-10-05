@@ -1,4 +1,4 @@
-package l9g.app.ldap2nextcloud.model;
+package l9g.app.ldap2nextcloud.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;

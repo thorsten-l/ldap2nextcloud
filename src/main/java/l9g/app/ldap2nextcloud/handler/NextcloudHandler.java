@@ -26,7 +26,7 @@ import l9g.app.ldap2nextcloud.model.NextcloudRole;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
-import l9g.app.ldap2nextcloud.nextcloud.NextcloudClient;
+import l9g.app.ldap2nextcloud.client.NextcloudClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

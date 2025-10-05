@@ -24,12 +24,9 @@ import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
-import l9g.app.ldap2nextcloud.nextcloud.NextcloudClient;
+import l9g.app.ldap2nextcloud.client.NextcloudClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.shell.command.annotation.Command;
 
 /**

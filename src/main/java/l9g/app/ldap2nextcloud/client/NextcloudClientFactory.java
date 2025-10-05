@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package l9g.app.ldap2nextcloud.nextcloud;
+package l9g.app.ldap2nextcloud.client;
 
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;

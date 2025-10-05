@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package l9g.app.ldap2nextcloud.nextcloud;
+package l9g.app.ldap2nextcloud.client;
 
 import io.netty.handler.codec.http.HttpResponse;
 import java.util.ArrayList;
@@ -23,16 +23,11 @@ import l9g.app.ldap2nextcloud.model.NextcloudGroup;
 import l9g.app.ldap2nextcloud.model.NextcloudOrganization;
 import l9g.app.ldap2nextcloud.model.NextcloudRole;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
-import l9g.app.ldap2nextcloud.model.OcsResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.service.annotation.DeleteExchange;
-import org.springframework.web.service.annotation.GetExchange;
-import org.springframework.web.service.annotation.PostExchange;
-import org.springframework.web.service.annotation.PutExchange;
 
 /**
  *
@@ -72,8 +67,6 @@ public class NextcloudClient
       .retrieve()
       .body(OcsResult.class);
 
-    // System.out.println("r1: " + result);
-
     if(result != null
       && result.getOcs() != null
       && result.getOcs().getMeta().getStatus() != null
@@ -96,22 +89,6 @@ public class NextcloudClient
     return null;
   }
 
-  /*
-  Query Parameters
-  
-  - Pagination
-    - per_page
-    - page
-  
-  - Sorting Parameter
-    - sort_by = {row name}
-  
-  - Order Direction
-    - order_by={directtion}
-  
-  - Resultset max size
-    - limit
-   */
   public List<NextcloudUser> usersSearch(
     @PathVariable("query") String query
   )
@@ -119,7 +96,6 @@ public class NextcloudClient
     return null;
   }
 
-  @GetExchange("/api/v1/users/search?query={property}:{search}")
   public List<NextcloudUser> usersSearch(
     @PathVariable("property") String property,
     @PathVariable("search") String search
@@ -128,7 +104,6 @@ public class NextcloudClient
     return null;
   }
 
-  @GetExchange("/api/v1/users/search?query={property}:{search}&limit={limit}")
   public List<NextcloudUser> usersSearch(
     @PathVariable("property") String property,
     @PathVariable("search") String search,
@@ -138,33 +113,28 @@ public class NextcloudClient
     return null;
   }
 
-  @DeleteExchange("/api/v1/users/{id}")
   public HttpResponse usersDelete(@PathVariable(name = "id") int id)
   {
     return null;
   }
 
-  @PutExchange("/api/v1/users/{id}")
   public NextcloudUser usersUpdate(@PathVariable(name = "id") int id,
     @RequestBody NextcloudUser user)
   {
     return null;
   }
 
-  @PutExchange("/api/v1/users/{id}")
   public NextcloudUser usersAnonymize(@PathVariable(name = "id") int id,
     @RequestBody NextcloudAnonymousUser user)
   {
     return null;
   }
 
-  @PostExchange("/api/v1/users")
   public NextcloudUser usersCreate(@RequestBody NextcloudUser user)
   {
     return null;
   }
 
-  @GetExchange("/api/v1/users/me")
   public NextcloudUser me()
   {
     return null;

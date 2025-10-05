@@ -81,6 +81,7 @@ mail:
   receipients: t.ludewig@ostfalia.de
 
 sync:
+  protected-users: admin,root
   default-role: Customer
   default-role-id: 0
   protected-role-ids: 0
