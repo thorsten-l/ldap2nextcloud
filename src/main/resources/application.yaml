@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: ldap2zammad
+
+  profiles:
+    active: default
+
+  config:
+    import: optional:file:data/config.yaml
+
+  main:
+    banner-mode: OFF
+    web-application-type: NONE
+
+  shell:
+    interactive:
+      enabled: true
+    command:
+      version:
+        enabled: true
+    history:
+      enabled: false
+    help:
+      enabled: true
+      long-names: help
+      short-names: h
+      command: help
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+logging:
+  pattern:
+    console: "%date{yyyy-MM-dd HH:mm:ss} %magenta([%thread]) %highlight(%-5level) %logger:%line - %yellow(%msg %n)"
+  level:
+    root: OFF
+    l9g: OFF
+    org.jline: OFF
+    reactor.netty.channel: OFF
+    io.netty.util.internal: OFF
+
+# DEVELOPMENT
+zammad:
+  base-url: https://tickets.dev.sonia.de 
+  token: "unset"
+  trust-all-certificates: false
+
+# QA
+#zammad:
+#  base-url: https://zammad.sonia.de
+#  token: "unset"
+#  trust-all-certificates: true
+
+ldap:
+  host:
+    name: id.dev.sonia.de
+    port: 3389
+    ssl: false
+  bind:
+    dn: cn=Directory Manager
+    password: "unset"
+  base-dn: dc=sonia,dc=de
+  scope: sub
+  filter: (&(modifyTimestamp>={0})(objectClass=soniaPerson)(!(soniaIsUnregistered=true))(!(nsrole=cn=pwa hidden user,o=ostfalia.de,dc=sonia,dc=de))(|(employeetype=m)(employeetype=az)(employeetype=p)(employeetype=lb)(employeetype=s)))
+  user:
+    id: soniaExternalUid
+    attributes: soniaExternalUid, soniaCustomerNumber, soniaPasswordRndN16, facsimileTelephoneNumber, telephoneNumber, cn, sn, givenname, employeetype, mail, l, o, ou, soniaAcademicTitle, title, soniaCampus, soniaDepartment, soniaInstitute
+
+mail:
+  enabled: true
+  host: 
+    name: smtp.sonia.de
+    port: 587
+    startTLS: true
+  credentials:
+    uid: "sonia.mail.sync"
+    password: "unset"
+  subject: "%date{yyyy-MM-dd HH:mm:ss} - %m"
+  from: "Ldap2Nextcloud <sonia.mail.sync.ucware@ostfalia.de>"
+  receipients: t.ludewig@ostfalia.de
+
+sync:
+  default-role: Customer
+  default-role-id: 0
+  protected-role-ids: 0
+  tag-syncer-roles: true
+  roles-tag: "_"
+  remove-tagged-roles-befor-update-user: true

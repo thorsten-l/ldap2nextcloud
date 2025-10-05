@@ -40,12 +40,15 @@ build/
 
 ####
 var/
-/ldap2zammad
-ldap2zammad.jar
-ldap2zammad.js
-application.yaml
+/ldap2nextcloud
+ldap2nextcloud.jar
+ldap2nextcloud.js
+config.yaml
+config.devel.yaml
+config.release.yaml
 application.devel.yaml
 application.release.yaml
 secret.bin
 rebel.xml
 .rebel.xml.bak
+GEMINI.md

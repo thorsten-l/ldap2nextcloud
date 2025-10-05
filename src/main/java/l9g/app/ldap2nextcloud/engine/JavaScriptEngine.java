@@ -39,7 +39,7 @@ public class JavaScriptEngine implements Closeable
   private final static String SCRIPT_TYPE = "js";
 
   private final static String SCRIPT_FILENAME 
-    = Application.CONFIG_PATH + "ldap2zammad.js";
+    = Application.CONFIG_PATH + "ldap2nextcloud.js";
 
   public JavaScriptEngine() throws IOException
   {

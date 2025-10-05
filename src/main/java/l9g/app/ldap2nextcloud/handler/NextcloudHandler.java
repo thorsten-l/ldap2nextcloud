@@ -25,40 +25,28 @@ import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
 import l9g.app.ldap2nextcloud.model.NextcloudRole;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import l9g.app.ldap2nextcloud.nextcloud.NextcloudClient;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author Thorsten Ludewig (t.ludewig@gmail.com)
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class NextcloudHandler
 {
-  private final static Logger LOGGER 
-    = LoggerFactory.getLogger(NextcloudHandler.class);
+  private final Config config;
 
-  @Autowired
-  private Config config;
-
-  @Autowired
-  private NextcloudClient nextcloudClient;
-
-  @Bean
-  public NextcloudHandler nextcloudHandlerBean()
-  {
-    LOGGER.debug("getNextcloudHandler");
-    return this;
-  }
+  private final NextcloudClient nextcloudClient;
 
   public void readNextcloudRolesAndUsers()
-  {
-    LOGGER.debug("readNextcloudRoles");
-    
+  { 
+    log.debug("readNextcloudRoles {}", config.getZammadBaseUrl());
+   
     nextcloudRoleList = new ArrayList<>();
     List<NextcloudRole> rolesResult;
     int page = 1;
@@ -70,9 +58,9 @@ public class NextcloudHandler
     }
     nextcloudRoleMap.clear();
     nextcloudRoleList.forEach(role -> nextcloudRoleMap.put(role.getId(), role));
-    LOGGER.info("loaded {} nextcloud roles", nextcloudRoleList.size());
+    log.info("loaded {} nextcloud roles", nextcloudRoleList.size());
     
-    LOGGER.debug("readNextcloudUsers");
+    log.debug("readNextcloudUsers");
     nextcloudUsersList = new ArrayList<>();
     List<NextcloudUser> usersResult;
     page = 1;
@@ -86,18 +74,18 @@ public class NextcloudHandler
     nextcloudUsersMap.clear();
     nextcloudUsersList.forEach(user -> nextcloudUsersMap.put(user.getLogin(), user));
 
-    LOGGER.info("loaded {} nextcloud users", nextcloudUsersList.size());
+    log.info("loaded {} nextcloud users", nextcloudUsersList.size());
   }
 
   public NextcloudUser createUser(NextcloudUser user)
   {
     if (config.isDryRun())
     {
-      LOGGER.info("CREATE DRY RUN: {}", user);
+      log.info("CREATE DRY RUN: {}", user);
     }
     else
     {
-      LOGGER.info("CREATE: {}", user);
+      log.info("CREATE: {}", user);
       try
       {
         user = nextcloudClient.usersCreate(user);
@@ -115,13 +103,13 @@ public class NextcloudHandler
   {
     if (config.isDryRun())
     {
-      LOGGER.info("UPDATE DRY RUN: {}", user);
+      log.info("UPDATE DRY RUN: {}", user);
     }
     else
     {
       try
       {
-        LOGGER.info("UPDATE: {}", objectMapper.writeValueAsString(user));
+        log.info("UPDATE: {}", objectMapper.writeValueAsString(user));
         user = nextcloudClient.usersUpdate(user.getId(), user);
       }
       catch (Throwable t)
@@ -139,13 +127,13 @@ public class NextcloudHandler
     
     if (config.isDryRun())
     {
-      LOGGER.info("DELETE (anonymize) DRY RUN: {}", anonymizedUser);
+      log.info("DELETE (anonymize) DRY RUN: {}", anonymizedUser);
     }
     else
     {
       
       
-      LOGGER.info("DELETE (anonymize): {}", anonymizedUser);
+      log.info("DELETE (anonymize): {}", anonymizedUser);
       try
       {
         // nextcloudClient.usersDelete(user.getId());
@@ -160,7 +148,8 @@ public class NextcloudHandler
   
   private void delayedErrorExit( String message )
   {
-    LOGGER.error(message);
+    
+    log.error(message);
     
     try
     {

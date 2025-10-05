@@ -20,13 +20,15 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import javax.net.ssl.SSLException;
 import l9g.app.ldap2nextcloud.Config;
 import l9g.app.ldap2nextcloud.handler.CryptoHandler;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.support.WebClientAdapter;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 import reactor.netty.http.client.HttpClient;
 
 /**
@@ -34,24 +36,24 @@ import reactor.netty.http.client.HttpClient;
  * @author Thorsten Ludewig (t.ludewig@gmail.com)
  */
 @Component
+@RequiredArgsConstructor
 public class NextcloudClientFactory
 {
-  private final static Logger LOGGER
-    = LoggerFactory.getLogger(NextcloudClientFactory.class);
+  private final static Logger LOGGER =
+    LoggerFactory.getLogger(NextcloudClientFactory.class);
 
-  @Autowired
-  private Config config;
+  private final Config config;
 
-  @Autowired
-  private CryptoHandler cryptoHandler;
+  private final CryptoHandler cryptoHandler;
 
   @Bean
-  public NextcloudClient createNextcloudClient() throws SSLException
+  public NextcloudClient createNextcloudClient()
+    throws SSLException
   {
     LOGGER.debug("createZammadClient");
     var webClientBuilder = WebClient.builder();
 
-    if (config.isZammadTrustAllCertificates())
+    if(config.isZammadTrustAllCertificates())
     {
       var sslContext = SslContextBuilder.forClient().trustManager(
         InsecureTrustManagerFactory.INSTANCE).build();
@@ -69,11 +71,11 @@ public class NextcloudClientFactory
         "Token token=" + cryptoHandler.decrypt(config.getZammadToken()))
       .build();
 
-    /*
-    HttpServiceProxyFactory factory
-      = HttpServiceProxyFactory.builder(
-        WebClientAdapter.forClient(webClient)).build();
-*/
-    return null; // factory.createClient(NextcloudClient.class);
+    HttpServiceProxyFactory factory =
+      HttpServiceProxyFactory.builderFor(
+        WebClientAdapter.create(webClient)).build();
+
+    return factory.createClient(NextcloudClient.class);
   }
+
 }

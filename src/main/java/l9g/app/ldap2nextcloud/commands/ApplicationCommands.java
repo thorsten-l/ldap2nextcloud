@@ -24,8 +24,8 @@ import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.TimestampUtil;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
-import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import l9g.app.ldap2nextcloud.handler.NextcloudHandler;
+import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class ApplicationCommands
   private LdapHandler ldapHandler;
 
   @Autowired
-  private NextcloudHandler zammadHandler;
+  private NextcloudHandler nextcloudHandler;
 
   @Autowired
   private LogbackConfig logbackConfig;
@@ -94,14 +94,14 @@ public class ApplicationCommands
     
     TimestampUtil timestampUtil = new TimestampUtil("zammad-users");
 
-    zammadHandler.readNextcloudRolesAndUsers();
+    nextcloudHandler.readNextcloudRolesAndUsers();
 
     ///////////////////////////////////////////////////////////////////////////
     // DELETE
     LOGGER.info( "looking for users to delete");
     ldapHandler.readAllLdapEntryUIDs();
     
-    for (NextcloudUser user : zammadHandler.getNextcloudUsersList())
+    for (NextcloudUser user : nextcloudHandler.getNextcloudUsersList())
     {
       if (!ldapHandler.getLdapEntryMap().containsKey(user.getLogin()))
       {
@@ -115,7 +115,7 @@ public class ApplicationCommands
         else
         {
           // DELETE
-          zammadHandler.deleteUser(user);
+          nextcloudHandler.deleteUser(user);
           deleteCounter++;
         }
       }
@@ -146,7 +146,7 @@ public class ApplicationCommands
         entryCounter++;
         LOGGER.debug("{}/{}", entryCounter, noEntries);
         String login = entry.getAttributeValue(config.getLdapUserId());
-        NextcloudUser zammadUser = zammadHandler.getNextcloudUsersMap().get(login);
+        NextcloudUser zammadUser = nextcloudHandler.getNextcloudUsersMap().get(login);
         ArrayList<String> roles = new ArrayList<>();
         NextcloudUser updateUser = new NextcloudUser();
         updateUser.setLogin(login);
@@ -155,7 +155,7 @@ public class ApplicationCommands
         if (config.getSyncDefaultRoleId() != null)
         {
           String defaultRoleName = 
-            zammadHandler.getNextcloudRoleMap().get(config.getSyncDefaultRoleId()).getName();
+            nextcloudHandler.getNextcloudRoleMap().get(config.getSyncDefaultRoleId()).getName();
           
           roles.add(defaultRoleName);
         }
@@ -179,7 +179,7 @@ public class ApplicationCommands
               zammadUser.getRole_ids().forEach(roleId ->
               {
                 String roleName
-                  = zammadHandler.getNextcloudRoleMap().get(roleId).getName();
+                  = nextcloudHandler.getNextcloudRoleMap().get(roleId).getName();
                 
                 if (!roleId.equals(config.getSyncDefaultRoleId())
                   && !roleName.startsWith(config.getSyncRolesTag()))
@@ -190,7 +190,7 @@ public class ApplicationCommands
             }
 
             js.getValue().executeVoid("update", updateUser, entry, config);
-            zammadHandler.updateUser(updateUser);
+            nextcloudHandler.updateUser(updateUser);
             updateCounter++;
           }
         }
@@ -198,7 +198,7 @@ public class ApplicationCommands
         {
           // CREATE
           js.getValue().executeVoid("create", updateUser, entry, config);
-          zammadHandler.createUser(updateUser);
+          nextcloudHandler.createUser(updateUser);
           createCounter++;
         }
       }

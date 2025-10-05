@@ -22,7 +22,6 @@ import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -37,9 +36,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class Config
 {
-  private final static Logger LOGGER
-    = LoggerFactory.getLogger(Config.class);
-
   @Value("${zammad.base-url}")
   private String zammadBaseUrl;
 
@@ -126,11 +122,4 @@ public class Config
 
   @Setter
   private boolean debug;
-
-  @Bean
-  public Config configBean()
-  {
-    LOGGER.debug("getConfig");
-    return this;
-  }
 }

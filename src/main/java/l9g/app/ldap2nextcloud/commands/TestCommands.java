@@ -57,10 +57,12 @@ public class TestCommands
       String[] loginList = ldapHandler.getLdapEntryMap().keySet().toArray(
         String[]::new);
 
+      int counter = 0;
+      
       for (String login : loginList)
       {
         Entry entry = ldapHandler.getLdapEntryMap().get(login);
-        System.out.println("\n" + entry);
+        System.out.println("\n" + (++counter) + " : " + entry);
         NextcloudUser user = new NextcloudUser();
         user.setLogin(login);
         js.getValue().executeVoid("test", user, entry);

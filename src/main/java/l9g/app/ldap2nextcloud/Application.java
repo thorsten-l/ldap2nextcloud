@@ -32,7 +32,7 @@ public class Application
 
   static
   {
-    System.setProperty("spring.config.location", "file:" + CONFIG_PATH);
+    // System.setProperty("spring.config.location", "file:" + CONFIG_PATH);
     System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
   }
 
