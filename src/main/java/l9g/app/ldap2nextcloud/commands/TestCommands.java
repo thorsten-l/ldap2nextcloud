@@ -19,15 +19,17 @@ import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unboundid.asn1.ASN1GeneralizedTime;
 import com.unboundid.ldap.sdk.Entry;
+import java.util.List;
 import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
-import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
+import l9g.app.ldap2nextcloud.nextcloud.NextcloudClient;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.command.annotation.Command;
 
 /**
@@ -35,34 +37,34 @@ import org.springframework.shell.command.annotation.Command;
  * @author Thorsten Ludewig (t.ludewig@gmail.com)
  */
 @Command(group = "Test")
+@RequiredArgsConstructor
+@Slf4j
 public class TestCommands
 {
-  private final static Logger LOGGER 
-    = LoggerFactory.getLogger(TestCommands.class);
+  private final LdapHandler ldapHandler;
 
-  @Autowired
-  private LdapHandler ldapHandler;
+  private final LogbackConfig logbackConfig;
 
-  @Autowired
-  private LogbackConfig logbackConfig;
+  private final NextcloudClient nextcloudClient;
 
   @Command(alias = "t1", description = "test javascipt file with ldap data")
-  public void testJavaScript() throws Throwable
+  public void testJavaScript()
+    throws Throwable
   {
     ldapHandler.readLdapEntries(new ASN1GeneralizedTime(0), true);
     ObjectMapper objectMapper = new ObjectMapper();
 
-    try (JavaScriptEngine js = new JavaScriptEngine())
+    try(JavaScriptEngine js = new JavaScriptEngine())
     {
       String[] loginList = ldapHandler.getLdapEntryMap().keySet().toArray(
-        String[]::new);
+        String[] :: new);
 
       int counter = 0;
-      
-      for (String login : loginList)
+
+      for(String login : loginList)
       {
         Entry entry = ldapHandler.getLdapEntryMap().get(login);
-        System.out.println("\n" + (++counter) + " : " + entry);
+        System.out.println("\n" + ( ++ counter) + " : " + entry);
         NextcloudUser user = new NextcloudUser();
         user.setLogin(login);
         js.getValue().executeVoid("test", user, entry);
@@ -71,40 +73,42 @@ public class TestCommands
     }
   }
 
-  @Command(alias = "t2", description = "show anonymous user")
-  public void testAnonymousUser() throws Throwable
+  @Command(alias = "t2", description = "list all user ids")
+  public void testListAllUserIds()
+    throws Throwable
   {
-    ObjectMapper objectMapper = new ObjectMapper();
-    NextcloudAnonymousUser user = new NextcloudAnonymousUser("eid9519122");
-    System.out.println("user=" + objectMapper.writeValueAsString(user));
+    List<String> userIdList = nextcloudClient.listAllUserIds();
+    userIdList.forEach(System.out :: println);
   }
 
   @Command(alias = "t3", description = "send test error mail")
-  public void testLoggerErrorMail() throws Throwable
+  public void testLoggerErrorMail()
+    throws Throwable
   {
     logbackConfig.getRootLogger().setLevel(Level.INFO);
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
 
-    LOGGER.info("INFO");
-    LOGGER.debug("DEBUG");
-    LOGGER.trace("TRACE");
-    LOGGER.warn("WARN");
-    LOGGER.error("ERROR");
+    log.info("INFO");
+    log.debug("DEBUG");
+    log.trace("TRACE");
+    log.warn("WARN");
+    log.error("ERROR");
 
     //////////////////
     logbackConfig.getL9gLogger().setLevel(Level.DEBUG);
 
     //////////////////
-    LOGGER.info("INFO");
-    LOGGER.debug("DEBUG");
-    LOGGER.trace("TRACE");
-    LOGGER.warn("WARN");
-    LOGGER.error("ERROR");
+    log.info("INFO");
+    log.debug("DEBUG");
+    log.trace("TRACE");
+    log.warn("WARN");
+    log.error("ERROR");
 
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
-    
-    LOGGER.info("INFO");
-    LOGGER.info( logbackConfig.getNotificationMarker(),
+
+    log.info("INFO");
+    log.info(logbackConfig.getNotificationMarker(),
       "This is a test notification INFO mail.");
   }
+
 }

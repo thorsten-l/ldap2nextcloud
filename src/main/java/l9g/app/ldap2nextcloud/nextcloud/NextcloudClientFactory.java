@@ -15,21 +15,27 @@
  */
 package l9g.app.ldap2nextcloud.nextcloud;
 
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.util.Base64;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import l9g.app.ldap2nextcloud.Config;
+import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
 import l9g.app.ldap2nextcloud.handler.CryptoHandler;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.support.WebClientAdapter;
-import org.springframework.web.service.invoker.HttpServiceProxyFactory;
-import reactor.netty.http.client.HttpClient;
+import org.springframework.web.client.RestClient;
 
 /**
  *
@@ -37,45 +43,97 @@ import reactor.netty.http.client.HttpClient;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class NextcloudClientFactory
 {
-  private final static Logger LOGGER =
-    LoggerFactory.getLogger(NextcloudClientFactory.class);
-
   private final Config config;
 
   private final CryptoHandler cryptoHandler;
 
+  @Value("${nextcloud.base-url:}")
+  private String nextcloudBaseUrl;
+
+  @Value("${nextcloud.ocs.user:}")
+  private String nextcloudOcsUser;
+
+  @EncryptedValue("${nextcloud.ocs.password:}")
+  private String nextcloudOcsPassword;
+
+  @Value("${nextcloud.trust-all-certificates:}")
+  boolean nextcloudTrustAllCertificates;
+
+  private final RestClient.Builder restClientBuilder;
+
   @Bean
-  public NextcloudClient createNextcloudClient()
+  public NextcloudClient createRestNextcloudClient()
     throws SSLException
   {
-    LOGGER.debug("createZammadClient");
-    var webClientBuilder = WebClient.builder();
+    RestClient.Builder builder = restClientBuilder;
 
-    if(config.isZammadTrustAllCertificates())
+    log.debug("createRestNextcloudClient");
+    log.debug("  base-url = {}", nextcloudBaseUrl);
+    log.debug("  ocs user = {}", nextcloudOcsUser);
+    log.trace("  ocs password = {}", nextcloudOcsPassword);
+
+    if(nextcloudTrustAllCertificates)
     {
-      var sslContext = SslContextBuilder.forClient().trustManager(
-        InsecureTrustManagerFactory.INSTANCE).build();
+      log.warn("TRUSTING ALL CERTIFICATES.");
+      HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10));
 
-      HttpClient httpClient = HttpClient.create().secure(t -> t.sslContext(
-        sslContext));
+      try
+      {
+        var trustAll = new X509TrustManager()
+        {
+          @Override
+          public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+          {
+          }
 
-      webClientBuilder = webClientBuilder
-        .clientConnector(new ReactorClientHttpConnector(httpClient));
+          @Override
+          public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+          {
+          }
+
+          @Override
+          public java.security.cert.X509Certificate[] getAcceptedIssuers()
+          {
+            return new java.security.cert.X509Certificate[0];
+          }
+
+        };
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]
+        {
+          trustAll
+        }, new SecureRandom());
+        httpClientBuilder.sslContext(sslContext);
+      }
+      catch(NoSuchAlgorithmException | KeyManagementException e)
+      {
+        throw new SSLException("Failed to initialize trust-all SSL context", e);
+      }
+
+      HttpClient jdkClient = httpClientBuilder.build();
+      builder = restClientBuilder.requestFactory(new JdkClientHttpRequestFactory(jdkClient));
     }
 
-    WebClient webClient = webClientBuilder
-      .baseUrl(config.getZammadBaseUrl())
-      .defaultHeader("Authorization",
-        "Token token=" + cryptoHandler.decrypt(config.getZammadToken()))
+    String basicAuthValue = "Basic " + Base64.getEncoder().encodeToString(
+      (nextcloudOcsUser + ":" + nextcloudOcsPassword).getBytes(StandardCharsets.UTF_8)
+    );
+
+    RestClient restClient = builder
+      .baseUrl(nextcloudBaseUrl)
+      .defaultHeaders(headers ->
+      {
+        headers.add("Authorization", basicAuthValue);
+        headers.add("OCS-APIRequest", "true");
+        headers.add("Accept", "application/json");
+      })
       .build();
 
-    HttpServiceProxyFactory factory =
-      HttpServiceProxyFactory.builderFor(
-        WebClientAdapter.create(webClient)).build();
-
-    return factory.createClient(NextcloudClient.class);
+    return new NextcloudClient(restClient);
   }
 
 }

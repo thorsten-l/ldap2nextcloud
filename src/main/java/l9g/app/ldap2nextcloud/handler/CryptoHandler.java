@@ -17,12 +17,7 @@ package l9g.app.ldap2nextcloud.handler;
 
 import l9g.app.ldap2nextcloud.crypto.AES256;
 import l9g.app.ldap2nextcloud.crypto.AppSecretKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,26 +25,22 @@ import org.springframework.stereotype.Component;
  * @author Thorsten Ludewig (t.ludewig@gmail.com)
  */
 @Component
+@Slf4j
 public class CryptoHandler
 {
-  private final static Logger LOGGER
-    = LoggerFactory.getLogger(CryptoHandler.class);
-
   public final static String AES256_PREFIX = "{AES256}";
 
-  @Autowired
-  public CryptoHandler(AppSecretKey appSecretKey)
+  private static final CryptoHandler SINGLETON = new CryptoHandler();
+
+  private CryptoHandler()
   {
-    LOGGER.debug("CryptoHandler()");
-    aes256 = new AES256(appSecretKey.getSecretKey());
+    log.debug("CryptoHandler()");
+    aes256 = new AES256(new AppSecretKey().getSecretKey());
   }
 
-  @Bean
-  @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-  public CryptoHandler cryptoHandlerBean()
+  public static final CryptoHandler getInstance()
   {
-    LOGGER.debug("cryptoHandlerBean");
-    return this;
+    return SINGLETON;
   }
 
   public String encrypt(String text)
@@ -61,7 +52,7 @@ public class CryptoHandler
   {
     String text;
 
-    if (encryptedText != null && encryptedText.startsWith(AES256_PREFIX))
+    if(encryptedText != null && encryptedText.startsWith(AES256_PREFIX))
     {
       text = aes256.decrypt(encryptedText.substring(AES256_PREFIX.length()));
     }
@@ -74,4 +65,5 @@ public class CryptoHandler
   }
 
   private final AES256 aes256;
+
 }

@@ -40,6 +40,7 @@ limitations under the License.
     <spring-shell.version>3.4.1</spring-shell.version>
     <graalvm-js.version>25.0.0</graalvm-js.version>
     <build.profile>default</build.profile>
+    <exec.inheritIo>true</exec.inheritIo>
   </properties>
   
   <dependencies>
