@@ -57,9 +57,9 @@ public class NextcloudClient
     return null;
   }
 
-  public List<String> listAllUserIds()
+  public List<String> listUsers()
   {
-    log.debug("listAllUserIds()");
+    log.debug("listUsers()");
 
     OcsResult result = restClient
       .get()
@@ -78,6 +78,31 @@ public class NextcloudClient
         return (List)users;
       }
     }
+    return new ArrayList<>();
+  }
+  
+  public List<String> listGroups()
+  {
+    log.debug("listGroups()");
+
+    OcsResult result = restClient
+      .get()
+      .uri(uriBuilder -> uriBuilder.path("/ocs/v1.php/cloud/groups").queryParam("format", "json").build())
+      .retrieve()
+      .body(OcsResult.class);
+
+    if(result != null
+      && result.getOcs() != null
+      && result.getOcs().getMeta().getStatus() != null
+      && result.getOcs().getMeta().getStatuscode() == 100)
+    {
+      Object groups = result.getOcs().getData().get("groups");
+      if(groups != null && groups instanceof List)
+      {
+        return (List)groups;
+      }
+    }
+    
     return new ArrayList<>();
   }
 
@@ -113,9 +138,28 @@ public class NextcloudClient
     return null;
   }
 
-  public HttpResponse usersDelete(@PathVariable(name = "id") int id)
+  public int usersDelete(String user)
   {
-    return null;
+    int statuscode = -1;
+    
+    log.debug("usersDelete({})", user);
+
+    OcsMetaResult result = restClient
+      .delete()
+      .uri("/ocs/v1.php/cloud/users/{user}?format=json", user)
+      .retrieve()
+      .body(OcsMetaResult.class);
+
+    if(result != null
+      && result.getOcs() != null
+      && result.getOcs().getMeta().getStatus() != null)
+    {
+      statuscode = result.getOcs().getMeta().getStatuscode(); // 100 == ok
+    }
+ 
+    log.debug("  - status code = {}", statuscode);
+    
+    return statuscode;
   }
 
   public NextcloudUser usersUpdate(@PathVariable(name = "id") int id,

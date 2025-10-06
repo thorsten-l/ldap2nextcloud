@@ -74,8 +74,10 @@ public class TestCommands
   public void testListAllUserIds()
     throws Throwable
   {
-    List<String> userIdList = nextcloudClient.listAllUserIds();
-    userIdList.forEach(System.out :: println);
+    List<String> users = nextcloudClient.listUsers();
+    users.forEach(System.out :: println);
+    List<String> groups = nextcloudClient.listGroups();
+    groups.forEach(System.out :: println);
   }
 
   @Command(alias = "t3", description = "send test error mail")

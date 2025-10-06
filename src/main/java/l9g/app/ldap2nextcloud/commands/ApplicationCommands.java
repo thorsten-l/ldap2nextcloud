@@ -16,19 +16,17 @@
 package l9g.app.ldap2nextcloud.commands;
 
 import ch.qos.logback.classic.Level;
-import com.unboundid.asn1.ASN1GeneralizedTime;
-import com.unboundid.ldap.sdk.Entry;
-import java.util.ArrayList;
+import java.util.List;
 import l9g.app.ldap2nextcloud.Config;
 import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.TimestampUtil;
-import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
 import l9g.app.ldap2nextcloud.handler.NextcloudHandler;
-import l9g.app.ldap2nextcloud.model.NextcloudUser;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.Option;
 
@@ -37,23 +35,27 @@ import org.springframework.shell.command.annotation.Option;
  * @author Thorsten Ludewig (t.ludewig@gmail.com)
  */
 @Command(group = "Application")
+@RequiredArgsConstructor
+@Slf4j
 public class ApplicationCommands
 {
   private final static Logger LOGGER
     = LoggerFactory.getLogger(ApplicationCommands.class);
 
-  @Autowired
-  private Config config;
+  private final Config config;
 
-  @Autowired
-  private LdapHandler ldapHandler;
+  private final LdapHandler ldapHandler;
 
-  @Autowired
-  private NextcloudHandler nextcloudHandler;
+  private final NextcloudHandler nextcloudHandler;
 
-  @Autowired
-  private LogbackConfig logbackConfig;
+  private final LogbackConfig logbackConfig;
 
+  @Value("${sync.protected-users}")
+  private List<String> protectedUsers;
+  
+  @Value("${sync.protected-groups}")
+  private List<String> protectedGroups;
+  
   @Command(description = "sync users from LDAP to Nextcloud")
   public void sync(
     @Option(longNames = "full-sync", defaultValue = "false") boolean fullSync,
@@ -62,6 +64,8 @@ public class ApplicationCommands
     @Option(longNames = "trace", defaultValue = "false") boolean trace
   ) throws Throwable
   {
+    // debug = true;
+    
     logbackConfig.getRootLogger().setLevel(Level.INFO);
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
 
@@ -78,7 +82,7 @@ public class ApplicationCommands
     }
 
     LOGGER.info("dry-run = '{}', full-sync = '{}', debug = '{}', trace = '{}'", dryRun, fullSync, debug, trace);
-    LOGGER.info("zammad server: '{}'", config.getZammadBaseUrl());
+    LOGGER.info("nextcloud server: '{}'", config.getZammadBaseUrl());
     LOGGER.info("ldap server: 'ldap{}://{}:{}'",
       (config.isLdapSslEnabled())?"s":"",
       config.getLdapHostname(),
@@ -94,22 +98,21 @@ public class ApplicationCommands
     
     TimestampUtil timestampUtil = new TimestampUtil("zammad-users");
 
-    nextcloudHandler.readNextcloudRolesAndUsers();
+    nextcloudHandler.readNextcloudGroupsAndUsers();
 
     ///////////////////////////////////////////////////////////////////////////
     // DELETE
     LOGGER.info( "looking for users to delete");
     ldapHandler.readAllLdapEntryUIDs();
     
-    for (NextcloudUser user : nextcloudHandler.getNextcloudUsersList())
+    for (String user : nextcloudHandler.getNextcloudUserIdsList())
     {
-      if (!ldapHandler.getLdapEntryMap().containsKey(user.getLogin()))
+      if (!ldapHandler.getLdapEntryMap().containsKey(user))
       {
-        if (user.getId() == 1
-          || user.hasAnyRoles(config.getSyncProtectedRoleIds()))
+        if (protectedUsers.contains(user))
         {
           // IGNORE protected Users
-          LOGGER.warn("IGNORE DELETE PROTECTED USER: {}", user.toStringShort());
+          LOGGER.warn("IGNORE DELETE PROTECTED USER: {}", user);
           ignoreCounter++;
         }
         else
@@ -121,6 +124,7 @@ public class ApplicationCommands
       }
     }
 
+/*   
     ///////////////////////////////////////////////////////////////////////////
     ASN1GeneralizedTime timestamp;
 
@@ -203,7 +207,7 @@ public class ApplicationCommands
         }
       }
     }
-    
+    */
     LOGGER.info("sync done\nSummary:"
       + "\n  updated {} user(s)"
       + "\n  created {} user(s)"

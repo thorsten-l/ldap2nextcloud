@@ -17,12 +17,9 @@ package l9g.app.ldap2nextcloud.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import l9g.app.ldap2nextcloud.Config;
 import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
-import l9g.app.ldap2nextcloud.model.NextcloudRole;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -43,43 +40,24 @@ public class NextcloudHandler
 
   private final NextcloudClient nextcloudClient;
 
-  public void readNextcloudRolesAndUsers()
-  { 
-    log.debug("readNextcloudRoles {}", config.getZammadBaseUrl());
-   
-    nextcloudRoleList = new ArrayList<>();
-    List<NextcloudRole> rolesResult;
-    int page = 1;
-    while((rolesResult = nextcloudClient.roles(page,100)) != null 
-      && !rolesResult.isEmpty())
-    {
-      nextcloudRoleList.addAll(rolesResult);
-      page++;
-    }
-    nextcloudRoleMap.clear();
-    nextcloudRoleList.forEach(role -> nextcloudRoleMap.put(role.getId(), role));
-    log.info("loaded {} nextcloud roles", nextcloudRoleList.size());
-    
-    log.debug("readNextcloudUsers");
-    nextcloudUsersList = new ArrayList<>();
-    List<NextcloudUser> usersResult;
-    page = 1;
-    while((usersResult = nextcloudClient.users(page, 100)) != null
-      && !usersResult.isEmpty())
-    {
-      nextcloudUsersList.addAll(usersResult);
-      page++;
-    }
-    
-    nextcloudUsersMap.clear();
-    nextcloudUsersList.forEach(user -> nextcloudUsersMap.put(user.getLogin(), user));
+  public void readNextcloudGroupsAndUsers()
+  {
+    log.debug("readNextcloudGroupsAndUsers");
 
-    log.info("loaded {} nextcloud users", nextcloudUsersList.size());
+    log.debug("readNextcloudGroups");
+    nextcloudGroupIdsList.clear();
+    nextcloudGroupIdsList.addAll(nextcloudClient.listGroups());
+    log.info("loaded {} nextcloud groups", nextcloudGroupIdsList.size());
+
+    log.debug("readNextcloudUsers");
+    nextcloudUserIdsList.clear();
+    nextcloudUserIdsList.addAll(nextcloudClient.listUsers());
+    log.info("loaded {} nextcloud users", nextcloudUserIdsList.size());
   }
 
   public NextcloudUser createUser(NextcloudUser user)
   {
-    if (config.isDryRun())
+    if(config.isDryRun())
     {
       log.info("CREATE DRY RUN: {}", user);
     }
@@ -90,7 +68,7 @@ public class NextcloudHandler
       {
         user = nextcloudClient.usersCreate(user);
       }
-      catch (Throwable t)
+      catch(Throwable t)
       {
         delayedErrorExit("*** CREATE FAILED *** " + t.getMessage());
       }
@@ -101,7 +79,7 @@ public class NextcloudHandler
 
   public NextcloudUser updateUser(NextcloudUser user)
   {
-    if (config.isDryRun())
+    if(config.isDryRun())
     {
       log.info("UPDATE DRY RUN: {}", user);
     }
@@ -112,7 +90,7 @@ public class NextcloudHandler
         log.info("UPDATE: {}", objectMapper.writeValueAsString(user));
         user = nextcloudClient.usersUpdate(user.getId(), user);
       }
-      catch (Throwable t)
+      catch(Throwable t)
       {
         delayedErrorExit("*** UPDATE FAILED *** " + t.getMessage());
       }
@@ -121,41 +99,39 @@ public class NextcloudHandler
     return user;
   }
 
-  public void deleteUser(NextcloudUser user)
+  public void deleteUser(String user)
   {
-    NextcloudAnonymousUser anonymizedUser = new NextcloudAnonymousUser(user.getLogin());
-    
-    if (config.isDryRun())
+
+    if(config.isDryRun())
     {
-      log.info("DELETE (anonymize) DRY RUN: {}", anonymizedUser);
+      log.info("DELETE user DRY RUN: {}", user);
     }
     else
     {
-      
-      
-      log.info("DELETE (anonymize): {}", anonymizedUser);
+
+      log.info("DELETE user: {}", user);
       try
       {
-        // nextcloudClient.usersDelete(user.getId());
-        nextcloudClient.usersAnonymize(user.getId(), anonymizedUser);
+        nextcloudClient.usersDelete(user);
+        // nextcloudClient.usersAnonymize(user.getId(), anonymizedUser);
       }
-      catch (Throwable t)
+      catch(Throwable t)
       {
-        delayedErrorExit("*** DELETE (anonymize) FAILED *** " + t.getMessage());
+        delayedErrorExit("*** DELETE user FAILED *** " + t.getMessage());
       }
     }
   }
-  
-  private void delayedErrorExit( String message )
+
+  private void delayedErrorExit(String message)
   {
-    
+
     log.error(message);
-    
+
     try
     {
       Thread.sleep(30000); // 30s delay to send error mail
     }
-    catch (InterruptedException ex)
+    catch(InterruptedException ex)
     {
       // do nothing
     }
@@ -165,14 +141,9 @@ public class NextcloudHandler
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Getter
-  private final Map<String, NextcloudUser> nextcloudUsersMap = new HashMap<>();
+  private final List<String> nextcloudUserIdsList = new ArrayList<>();
 
   @Getter
-  private List<NextcloudUser> nextcloudUsersList;
-  
-  @Getter
-  private final Map<Integer, NextcloudRole> nextcloudRoleMap = new HashMap<>();
+  private final List<String> nextcloudGroupIdsList = new ArrayList<>();
 
-  @Getter
-  private List<NextcloudRole> nextcloudRoleList;
 }
