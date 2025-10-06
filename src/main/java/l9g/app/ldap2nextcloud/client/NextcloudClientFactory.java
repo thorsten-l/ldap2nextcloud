@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Thorsten Ludewig (t.ludewig@gmail.com).
+ * Copyright 2025 Thorsten Ludewig (t.ludewig@gmail.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import l9g.app.ldap2nextcloud.Config;
 import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
-import l9g.app.ldap2nextcloud.handler.CryptoHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,10 +44,6 @@ import org.springframework.web.client.RestClient;
 @Slf4j
 public class NextcloudClientFactory
 {
-  private final Config config;
-
-  private final CryptoHandler cryptoHandler;
-
   @Value("${nextcloud.base-url:}")
   private String nextcloudBaseUrl;
 
