@@ -30,12 +30,12 @@ import java.security.GeneralSecurityException;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import javax.net.ssl.SSLSocketFactory;
-import l9g.app.ldap2nextcloud.Config;
+import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,50 +43,69 @@ import org.springframework.stereotype.Component;
  * @author Thorsten Ludewig (t.ludewig@gmail.com)
  */
 @Component
+@RequiredArgsConstructor
 public class LdapHandler
 {
   private final static Logger LOGGER 
     = LoggerFactory.getLogger(LdapHandler.class);
 
-  @Autowired
-  private Config config;
+    @Value("${ldap.host.name}")
+  private String ldapHostname;
 
-  @Autowired
-  private CryptoHandler cryptoHandler;
+  @Value("${ldap.host.port}")
+  private int ldapPort;
 
-  @Bean
-  public LdapHandler ldapHandlerBean()
-  {
-    LOGGER.debug("getLdapHandler");
-    return this;
-  }
+  @Value("${ldap.host.ssl}")
+  private boolean ldapSslEnabled;
 
+  @Value("${ldap.base-dn}")
+  private String ldapBaseDn;
+
+  @Value("${ldap.bind.dn}")
+  private String ldapBindDn;
+
+  @EncryptedValue("${ldap.bind.password}")
+  private String ldapBindPassword;
+
+  @Value("${ldap.scope}")
+  private String ldapScope;
+
+  @Value("${ldap.filter}")
+  private String ldapFilter;
+
+  @Value("${ldap.user.id}")
+  private String ldapUserId;
+
+  @Value("${ldap.user.attributes}")
+  private String[] ldapUserAttributeNames;
+
+ 
   private LDAPConnection getConnection() throws Exception
   {
-    LOGGER.debug("host={}", config.getLdapHostname());
-    LOGGER.debug("port={}", config.getLdapPort());
-    LOGGER.debug("ssl={}", config.isLdapSslEnabled());
-    LOGGER.debug("bind dn={}", config.getLdapBindDn());
-    LOGGER.trace("bind pw={}", cryptoHandler.decrypt(config.getLdapBindPassword()));
+    LOGGER.debug("host={}", ldapHostname);
+    LOGGER.debug("port={}", ldapPort);
+    LOGGER.debug("ssl={}", ldapSslEnabled);
+    LOGGER.debug("bind dn={}", ldapBindDn);
+    LOGGER.trace("bind pw={}", ldapBindPassword);
 
     LDAPConnection ldapConnection;
 
     LDAPConnectionOptions options = new LDAPConnectionOptions();
-    if (config.isLdapSslEnabled())
+    if (ldapSslEnabled)
     {
       ldapConnection = new LDAPConnection(createSSLSocketFactory(), options,
-        config.getLdapHostname(), config.getLdapPort(),
-        config.getLdapBindDn(),
-        cryptoHandler.decrypt(config.getLdapBindPassword()));
+        ldapHostname, ldapPort,
+        ldapBindDn,
+        ldapBindPassword);
     }
     else
     {
       ldapConnection = new LDAPConnection(options,
-        config.getLdapHostname(), config.getLdapPort(),
-        config.getLdapBindDn(),
-        cryptoHandler.decrypt(config.getLdapBindPassword()));
+        ldapHostname, ldapPort,
+        ldapBindDn,
+        ldapBindPassword);
     }
-    ldapConnection.setConnectionName(config.getLdapHostname());
+    ldapConnection.setConnectionName(ldapHostname);
     return ldapConnection;
   }
 
@@ -112,7 +131,7 @@ public class LdapHandler
     ldapEntryMap.clear();
 
     String filter = new MessageFormat(
-      config.getLdapFilter()).format(new Object[]
+      ldapFilter).format(new Object[]
     {
       lastSyncTimestamp.toString()
     });
@@ -126,14 +145,14 @@ public class LdapHandler
       if (withAttributes)
       {
         searchRequest = new SearchRequest(
-          config.getLdapBaseDn(), SearchScope.SUB, filter,
-          config.getLdapUserAttributeNames());
+          ldapBaseDn, SearchScope.SUB, filter,
+          ldapUserAttributeNames);
       }
       else
       {
         searchRequest = new SearchRequest(
-          config.getLdapBaseDn(), SearchScope.SUB, filter,
-          config.getLdapUserId());
+          ldapBaseDn, SearchScope.SUB, filter,
+          ldapUserId);
       }
 
       int totalSourceEntries = 0;
@@ -160,7 +179,7 @@ public class LdapHandler
           {
             ldapEntryMap.put(
               entry.getAttributeValue(
-                config.getLdapUserId()).trim().toLowerCase(), entry);
+                ldapUserId).trim().toLowerCase(), entry);
           }
 
           responseControl = SimplePagedResultsControl.get(sourceSearchResult);
@@ -192,9 +211,9 @@ public class LdapHandler
 
   public void test() throws Throwable
   {
-    LOGGER.debug("basedn={}", config.getLdapBaseDn());
-    LOGGER.debug("scope={}", config.getLdapScope());
-    LOGGER.debug("user id={}", config.getLdapUserId());
+    LOGGER.debug("basedn={}", ldapBaseDn);
+    LOGGER.debug("scope={}", ldapScope);
+    LOGGER.debug("user id={}", ldapUserId);
 
     readAllLdapEntryUIDs();
     printLdapEntriesMap();

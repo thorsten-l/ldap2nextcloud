@@ -82,12 +82,12 @@ public class ApplicationCommands
     }
 
     LOGGER.info("dry-run = '{}', full-sync = '{}', debug = '{}', trace = '{}'", dryRun, fullSync, debug, trace);
-    LOGGER.info("nextcloud server: '{}'", config.getZammadBaseUrl());
+/*
     LOGGER.info("ldap server: 'ldap{}://{}:{}'",
       (config.isLdapSslEnabled())?"s":"",
       config.getLdapHostname(),
       config.getLdapPort());
-    
+*/    
     config.setDebug(debug);
     config.setDryRun(dryRun);
 

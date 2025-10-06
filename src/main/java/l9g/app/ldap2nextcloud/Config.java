@@ -19,8 +19,6 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -36,44 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Config
 {
-  @Value("${zammad.base-url}")
-  private String zammadBaseUrl;
 
-  @Value("${zammad.token}")
-  private String zammadToken;
-
-  @Value("${zammad.trust-all-certificates}")
-  private boolean zammadTrustAllCertificates;
-
-  @Value("${ldap.host.name}")
-  private String ldapHostname;
-
-  @Value("${ldap.host.port}")
-  private int ldapPort;
-
-  @Value("${ldap.host.ssl}")
-  private boolean ldapSslEnabled;
-
-  @Value("${ldap.base-dn}")
-  private String ldapBaseDn;
-
-  @Value("${ldap.bind.dn}")
-  private String ldapBindDn;
-
-  @Value("${ldap.bind.password}")
-  private String ldapBindPassword;
-
-  @Value("${ldap.scope}")
-  private String ldapScope;
-
-  @Value("${ldap.filter}")
-  private String ldapFilter;
-
-  @Value("${ldap.user.id}")
-  private String ldapUserId;
-
-  @Value("${ldap.user.attributes}")
-  private String[] ldapUserAttributeNames;
 
   @Value("${mail.enabled}")
   private boolean mailEnabled;
@@ -102,21 +63,6 @@ public class Config
   @Value("${mail.receipients}")
   private String[] mailReceipients;
 
-  @Value("${sync.default-role-id}")
-  private Integer syncDefaultRoleId;
-
-  @Value("${sync.protected-role-ids}")
-  private List<Integer> syncProtectedRoleIds;
-
-  @Value("${sync.tag-syncer-roles}")
-  private boolean syncTagSyncerRolesEnabled;
-
-  @Value("${sync.roles-tag}")
-  private String syncRolesTag;
-  
-  @Value("${sync.remove-tagged-roles-befor-update-user}")
-  private boolean syncRemoveTaggedRolesBeforUpdateUser;
-  
   @Setter
   private boolean dryRun;
 
