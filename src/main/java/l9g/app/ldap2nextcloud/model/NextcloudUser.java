@@ -121,7 +121,6 @@ public class NextcloudUser
 
   private Object out_of_office_replacement_id;
    */
-  private NextcloudPreferences preferences;
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private Integer updated_by_id;

@@ -15,13 +15,8 @@
  */
 package l9g.app.ldap2nextcloud.client;
 
-import io.netty.handler.codec.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
-import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
-import l9g.app.ldap2nextcloud.model.NextcloudGroup;
-import l9g.app.ldap2nextcloud.model.NextcloudOrganization;
-import l9g.app.ldap2nextcloud.model.NextcloudRole;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,24 +33,6 @@ import org.springframework.web.client.RestClient;
 public class NextcloudClient
 {
   private final RestClient restClient;
-
-  public List<NextcloudGroup> groups()
-  {
-    return null;
-  }
-
-  public List<NextcloudOrganization> organizations()
-  {
-    return null;
-  }
-
-  public List<NextcloudRole> roles(
-    @PathVariable("page") int page,
-    @PathVariable("perPage") int perPage
-  )
-  {
-    return null;
-  }
 
   public List<String> listUsers()
   {
@@ -80,7 +57,7 @@ public class NextcloudClient
     }
     return new ArrayList<>();
   }
-  
+
   public List<String> listGroups()
   {
     log.debug("listGroups()");
@@ -102,46 +79,14 @@ public class NextcloudClient
         return (List)groups;
       }
     }
-    
+
     return new ArrayList<>();
-  }
-
-  public List<NextcloudUser> users(
-    @PathVariable("page") int page,
-    @PathVariable("perPage") int perPage
-  )
-  {
-    return null;
-  }
-
-  public List<NextcloudUser> usersSearch(
-    @PathVariable("query") String query
-  )
-  {
-    return null;
-  }
-
-  public List<NextcloudUser> usersSearch(
-    @PathVariable("property") String property,
-    @PathVariable("search") String search
-  )
-  {
-    return null;
-  }
-
-  public List<NextcloudUser> usersSearch(
-    @PathVariable("property") String property,
-    @PathVariable("search") String search,
-    @PathVariable("limit") int limit
-  )
-  {
-    return null;
   }
 
   public int usersDelete(String user)
   {
     int statuscode = -1;
-    
+
     log.debug("usersDelete({})", user);
 
     OcsMetaResult result = restClient
@@ -156,9 +101,9 @@ public class NextcloudClient
     {
       statuscode = result.getOcs().getMeta().getStatuscode(); // 100 == ok
     }
- 
+
     log.debug("  - status code = {}", statuscode);
-    
+
     return statuscode;
   }
 
@@ -168,18 +113,7 @@ public class NextcloudClient
     return null;
   }
 
-  public NextcloudUser usersAnonymize(@PathVariable(name = "id") int id,
-    @RequestBody NextcloudAnonymousUser user)
-  {
-    return null;
-  }
-
   public NextcloudUser usersCreate(@RequestBody NextcloudUser user)
-  {
-    return null;
-  }
-
-  public NextcloudUser me()
   {
     return null;
   }

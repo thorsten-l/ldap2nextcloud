@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import l9g.app.ldap2nextcloud.Config;
-import l9g.app.ldap2nextcloud.model.NextcloudAnonymousUser;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
