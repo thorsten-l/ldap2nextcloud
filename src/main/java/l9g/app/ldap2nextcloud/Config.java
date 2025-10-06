@@ -15,7 +15,6 @@
  */
 package l9g.app.ldap2nextcloud;
 
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -34,34 +33,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class Config
 {
-
-
-  @Value("${mail.enabled}")
-  private boolean mailEnabled;
-
-  @Value("${mail.host.name}")
-  private String mailHostname;
-
-  @Value("${mail.host.port}")
-  private int mailPort;
-
-  @Value("${mail.host.startTLS}")
-  private boolean mailStartTLS;
-
-  @Value("${mail.credentials.uid}")
-  private String mailCredentialsUid;
-
-  @Value("${mail.credentials.password}")
-  private String mailCredentialsPassword;
-
-  @Value("${mail.subject}")
-  private String mailSubject;
-
-  @Value("${mail.from}")
-  private String mailFrom;
-
-  @Value("${mail.receipients}")
-  private String[] mailReceipients;
 
   @Setter
   private boolean dryRun;

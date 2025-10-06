@@ -20,13 +20,14 @@ import ch.qos.logback.classic.boolex.OnMarkerEvaluator;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SMTPAppender;
 import ch.qos.logback.core.spi.CyclicBufferTracker;
-import l9g.app.ldap2nextcloud.handler.CryptoHandler;
+import jakarta.annotation.PostConstruct;
+import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
@@ -39,30 +40,54 @@ import org.springframework.stereotype.Component;
 @Component
 public class LogbackConfig
 {
-  private final static Logger LOGGER
-    = LoggerFactory.getLogger(LogbackConfig.class);
+  private final static Logger LOGGER =
+    LoggerFactory.getLogger(LogbackConfig.class);
 
   public final static String SMTP_NOTIFICATION = "SMTP_NOTIFICATION";
 
-  private final static String PATTERN
-    = "%date{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger:%line - %msg %n";
+  private final static String PATTERN =
+    "%date{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger:%line - %msg %n";
 
-  @Autowired
-  public LogbackConfig(Config config, CryptoHandler cryptoHandler)
+  @Value("${mail.enabled}")
+  private boolean mailEnabled;
+
+  @Value("${mail.host.name}")
+  private String mailHostname;
+
+  @Value("${mail.host.port}")
+  private int mailPort;
+
+  @Value("${mail.host.startTLS}")
+  private boolean mailStartTLS;
+
+  @Value("${mail.credentials.uid}")
+  private String mailCredentialsUid;
+
+  @EncryptedValue("${mail.credentials.password}")
+  private String mailCredentialsPassword;
+
+  @Value("${mail.subject}")
+  private String mailSubject;
+
+  @Value("${mail.from}")
+  private String mailFrom;
+
+  @Value("${mail.receipients}")
+  private String[] mailReceipients;
+
+  @PostConstruct
+  public void initialize()
   {
-    this.config = config;
-    this.cryptoHandler = cryptoHandler;
-
     LOGGER.debug("initialize - post construct - mail is enabled = {}",
-      config.isMailEnabled());
-    loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+      mailEnabled);
+    loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
     rootLogger = loggerContext.getLogger(
       ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
     l9gLogger = loggerContext.getLogger("l9g");
 
     notificationMarker = MarkerFactory.getMarker(SMTP_NOTIFICATION);
 
-    if (config.isMailEnabled())
+    if(mailEnabled)
     {
       PatternLayoutEncoder layoutEncoder = new PatternLayoutEncoder();
       layoutEncoder.setContext(loggerContext);
@@ -70,8 +95,8 @@ public class LogbackConfig
       layoutEncoder.start();
       //
       smtpAppender = buildSmtpAppender("SMTP", layoutEncoder, null);
-      smtpMarkerAppender
-        = buildSmtpAppender(SMTP_NOTIFICATION, layoutEncoder,
+      smtpMarkerAppender =
+        buildSmtpAppender(SMTP_NOTIFICATION, layoutEncoder,
           SMTP_NOTIFICATION);
       rootLogger.addAppender(smtpAppender);
       rootLogger.addAppender(smtpMarkerAppender);
@@ -96,25 +121,24 @@ public class LogbackConfig
 
     appender.setContext(loggerContext);
     appender.setName(name);
-    appender.setFrom(config.getMailFrom());
+    appender.setFrom(mailFrom);
 
-    for (String to : config.getMailReceipients())
+    for(String to : mailReceipients)
     {
       appender.addTo(to);
     }
 
-    appender.setSmtpHost(config.getMailHostname());
-    appender.setSmtpPort(config.getMailPort());
-    appender.setSTARTTLS(config.isMailStartTLS());
-    appender.setSubject(config.getMailSubject());
-    appender.setUsername(config.getMailCredentialsUid());
-    appender.setPassword(
-      cryptoHandler.decrypt(config.getMailCredentialsPassword()));
+    appender.setSmtpHost(mailHostname);
+    appender.setSmtpPort(mailPort);
+    appender.setSTARTTLS(mailStartTLS);
+    appender.setSubject(mailSubject);
+    appender.setUsername(mailCredentialsUid);
+    appender.setPassword(mailCredentialsPassword);
     appender.setLayout(layoutEncoder.getLayout());
     appender.setAsynchronousSending(false);
     appender.setCyclicBufferTracker(bufferTracker);
 
-    if (markerName != null)
+    if(markerName != null)
     {
       OnMarkerEvaluator evaluator = new OnMarkerEvaluator();
       evaluator.addMarker(markerName);
@@ -130,18 +154,15 @@ public class LogbackConfig
 
   private SMTPAppender smtpMarkerAppender;
 
-  private final Config config;
-
-  private final CryptoHandler cryptoHandler;
-
-  private final LoggerContext loggerContext;
+  private LoggerContext loggerContext;
 
   @Getter
-  private final ch.qos.logback.classic.Logger rootLogger;
+  private ch.qos.logback.classic.Logger rootLogger;
 
   @Getter
-  private final ch.qos.logback.classic.Logger l9gLogger;
+  private ch.qos.logback.classic.Logger l9gLogger;
 
   @Getter
-  private final Marker notificationMarker;
+  private Marker notificationMarker;
+
 }
