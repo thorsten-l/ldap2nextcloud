@@ -20,11 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unboundid.asn1.ASN1GeneralizedTime;
 import com.unboundid.ldap.sdk.Entry;
 import java.util.List;
+import java.util.Map;
 import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import l9g.app.ldap2nextcloud.client.NextcloudClient;
+import l9g.app.ldap2nextcloud.config.AttributesMapService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.shell.command.annotation.Command;
@@ -43,6 +45,8 @@ public class TestCommands
   private final LogbackConfig logbackConfig;
 
   private final NextcloudClient nextcloudClient;
+
+  private final AttributesMapService attributesMapService;
 
   @Command(alias = "t1", description = "test javascipt file with ldap data")
   public void testJavaScript()
@@ -63,7 +67,7 @@ public class TestCommands
         Entry entry = ldapHandler.getLdapEntryMap().get(login);
         System.out.println("\n" + ( ++ counter) + " : " + entry);
         NextcloudUser user = new NextcloudUser();
-        user.setLogin(login);
+        user.setUserId(login);
         js.getValue().executeVoid("test", user, entry);
         System.out.println(objectMapper.writeValueAsString(user));
       }
@@ -108,6 +112,47 @@ public class TestCommands
     log.info("INFO");
     log.info(logbackConfig.getNotificationMarker(),
       "This is a test notification INFO mail.");
+  }
+
+  @Command(alias = "t4", description = "collect all roles, groups and employeetypes")
+  public void testGroupsColletor()
+    throws Throwable
+  {
+    log.debug("testGroupsColletor");
+    
+    ldapHandler.buildGroupsMap();
+    
+    ldapHandler.getLdapRoleGroupsEntryMap().entrySet().stream()
+      .sorted(Map.Entry.comparingByKey())
+      .forEach(entry ->
+      {
+        System.out.println( "      - " + entry.getKey() + "," + entry.getValue());
+      });
+     
+    System.out.println("done");
+/*
+    attributesMapService.getInstitutes().entrySet().stream()
+      .sorted(Map.Entry.comparingByKey())
+      .forEach(entry ->
+      {
+        System.out.println("'" + entry.getKey() + "' = '" + entry.getValue() + "'");
+      });
+*/
+  }
+  
+ @Command(alias = "t5", description = "show all known groups")
+  public void testShowAllKnownGroups()
+    throws Throwable
+  {
+    log.debug("testShowAllKnownGroups");
+    
+    attributesMapService.getGroups().entrySet().stream()
+      .sorted(Map.Entry.comparingByKey())
+      .forEach(entry ->
+      {
+        System.out.println("'" + entry.getKey() + "' = '" + entry.getValue() + "'");
+      });
+
   }
 
 }

@@ -18,9 +18,9 @@ package l9g.app.ldap2nextcloud.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -33,43 +33,13 @@ import lombok.ToString;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+@AllArgsConstructor
 public class NextcloudGroup
 {
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer id;
+  @JsonProperty("groupid")
+  private String groupId;
 
-  private Integer signature_id;
-
-  private Integer email_address_id;
-
-  private String name;
-
-  private Integer assignment_timeout;
-
-  private String follow_up_possible;
-
-  private Integer reopen_time_in_days;
-
-  private Boolean follow_up_assignment;
-
-  private Boolean active;
-
-  private Boolean shared_drafts;
-
-  private String note;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer updated_by_id;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer created_by_id;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Date created_at;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Date updated_at;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private List<Integer> user_ids;
+  @JsonProperty("displayname")
+  private String displayName;
 }

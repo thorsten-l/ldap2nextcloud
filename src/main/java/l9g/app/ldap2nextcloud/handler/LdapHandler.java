@@ -46,10 +46,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LdapHandler
 {
-  private final static Logger LOGGER 
-    = LoggerFactory.getLogger(LdapHandler.class);
+  private final static Logger LOGGER =
+    LoggerFactory.getLogger(LdapHandler.class);
 
-    @Value("${ldap.host.name}")
+  @Value("${ldap.host.name}")
   private String ldapHostname;
 
   @Value("${ldap.host.port}")
@@ -73,14 +73,15 @@ public class LdapHandler
   @Value("${ldap.filter}")
   private String ldapFilter;
 
+  @Getter
   @Value("${ldap.user.id}")
   private String ldapUserId;
 
   @Value("${ldap.user.attributes}")
   private String[] ldapUserAttributeNames;
 
- 
-  private LDAPConnection getConnection() throws Exception
+  private LDAPConnection getConnection()
+    throws Exception
   {
     LOGGER.debug("host={}", ldapHostname);
     LOGGER.debug("port={}", ldapPort);
@@ -91,7 +92,7 @@ public class LdapHandler
     LDAPConnection ldapConnection;
 
     LDAPConnectionOptions options = new LDAPConnectionOptions();
-    if (ldapSslEnabled)
+    if(ldapSslEnabled)
     {
       ldapConnection = new LDAPConnection(createSSLSocketFactory(), options,
         ldapHostname, ldapPort,
@@ -109,7 +110,8 @@ public class LdapHandler
     return ldapConnection;
   }
 
-  private SSLSocketFactory createSSLSocketFactory() throws
+  private SSLSocketFactory createSSLSocketFactory()
+    throws
     GeneralSecurityException
   {
     SSLUtil sslUtil = new SSLUtil(new TrustAllTrustManager());
@@ -138,11 +140,11 @@ public class LdapHandler
 
     LOGGER.debug("filter={}", filter);
 
-    try (LDAPConnection connection = getConnection())
+    try(LDAPConnection connection = getConnection())
     {
       SearchRequest searchRequest;
 
-      if (withAttributes)
+      if(withAttributes)
       {
         searchRequest = new SearchRequest(
           ldapBaseDn, SearchScope.SUB, filter,
@@ -173,9 +175,9 @@ public class LdapHandler
         int sourceEntries = sourceSearchResult.getEntryCount();
         totalSourceEntries += sourceEntries;
 
-        if (sourceEntries > 0)
+        if(sourceEntries > 0)
         {
-          for (Entry entry : sourceSearchResult.getSearchEntries())
+          for(Entry entry : sourceSearchResult.getSearchEntries())
           {
             ldapEntryMap.put(
               entry.getAttributeValue(
@@ -184,15 +186,15 @@ public class LdapHandler
 
           responseControl = SimplePagedResultsControl.get(sourceSearchResult);
 
-          if (responseControl != null)
+          if(responseControl != null)
           {
             resumeCookie = responseControl.getCookie();
           }
         }
       }
-      while (responseControl != null && responseControl.moreResultsToReturn());
+      while(responseControl != null && responseControl.moreResultsToReturn());
 
-      if (totalSourceEntries == 0)
+      if(totalSourceEntries == 0)
       {
         LOGGER.info("no ldap entries found");
       }
@@ -204,12 +206,14 @@ public class LdapHandler
     }
   }
 
-  public void readAllLdapEntryUIDs() throws Throwable
+  public void readAllLdapEntryUIDs()
+    throws Throwable
   {
     readLdapEntries(new ASN1GeneralizedTime(0), false);
   }
 
-  public void test() throws Throwable
+  public void test()
+    throws Throwable
   {
     LOGGER.debug("basedn={}", ldapBaseDn);
     LOGGER.debug("scope={}", ldapScope);
@@ -221,6 +225,109 @@ public class LdapHandler
     printLdapEntriesMap();
   }
 
+  public void buildGroupsMap()
+    throws Throwable
+  {
+    ldapRoleGroupsEntryMap.clear();
+
+    try(LDAPConnection connection = getConnection())
+    {
+      SearchRequest searchRequest;
+
+      searchRequest = new SearchRequest(
+        ldapBaseDn, SearchScope.SUB, "(objectClass=soniaDepartment)",
+        new String[]
+        {
+          "cn", "employeeType", "description", "name", "soniaDepartmentNumber",
+          "soniaLocalityNumber", "soniaDepartmentToken", "l"
+        });
+
+      int totalSourceEntries = 0;
+      ASN1OctetString resumeCookie = null;
+      SimplePagedResultsControl responseControl = null;
+
+      // int pagedResultSize = ldapConfig.getPagedResultSize() > 0
+      //   ? ldapConfig.getPagedResultSize() : 1000;
+      int pagedResultSize = 1000;
+
+      do
+      {
+        searchRequest.setControls(
+          new SimplePagedResultsControl(pagedResultSize, resumeCookie));
+
+        SearchResult sourceSearchResult = connection.search(searchRequest);
+
+        int sourceEntries = sourceSearchResult.getEntryCount();
+        totalSourceEntries += sourceEntries;
+
+        if(sourceEntries > 0)
+        {
+          for(Entry entry : sourceSearchResult.getSearchEntries())
+          {
+
+            String prefix = "X";
+
+            
+            if( ! entry.getDN().toLowerCase().contains("department") )
+            {
+              continue;
+            }
+
+            LOGGER.debug("entry={}", entry);
+            String key = entry.getAttributeValue("soniaDepartmentToken");
+            if ( key == null )
+            {
+              continue;
+            }
+              
+            key = key.trim().toLowerCase();
+            
+            String type = "DP";
+
+            if(entry.getDN().toLowerCase().contains("ostfalia"))
+            {
+              prefix = "OFA";
+            }
+            else if(entry.getDN().toLowerCase().contains("hbk-bs"))
+            {
+              prefix = "HBK";
+            }
+            else if(entry.getDN().toLowerCase().contains("landesmus"))
+            {
+              prefix = "3LM";
+            }
+
+            ldapRoleGroupsEntryMap.put(prefix + type + key, prefix + " " +  entry.getAttributeValue("description"));
+          }
+
+          responseControl = SimplePagedResultsControl.get(sourceSearchResult);
+
+          if(responseControl != null)
+          {
+            resumeCookie = responseControl.getCookie();
+          }
+        }
+      }
+      while(responseControl != null && responseControl.moreResultsToReturn());
+
+      if(totalSourceEntries == 0)
+      {
+        LOGGER.info("no ldap roles/groups entries found");
+      }
+      else
+      {
+        LOGGER.
+          info("loaded {} roles/groups entries", ldapRoleGroupsEntryMap.size());
+      }
+    }
+
+  }
+
+
   @Getter
   private final HashMap<String, Entry> ldapEntryMap = new HashMap<>();
+
+  @Getter
+  private final HashMap<String, String> ldapRoleGroupsEntryMap = new HashMap<>();
+
 }

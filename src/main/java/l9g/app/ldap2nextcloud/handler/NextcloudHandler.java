@@ -16,13 +16,14 @@
 package l9g.app.ldap2nextcloud.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import l9g.app.ldap2nextcloud.Config;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 import l9g.app.ldap2nextcloud.client.NextcloudClient;
+import l9g.app.ldap2nextcloud.model.NextcloudGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,26 +36,44 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NextcloudHandler
 {
+
   private final Config config;
 
   private final NextcloudClient nextcloudClient;
 
-  public void readNextcloudGroupsAndUsers()
+  public void readNextcloudGroups()
   {
-    log.debug("readNextcloudGroupsAndUsers");
-
     log.debug("readNextcloudGroups");
-    nextcloudGroupIdsList.clear();
-    nextcloudGroupIdsList.addAll(nextcloudClient.listGroups());
-    log.info("loaded {} nextcloud groups", nextcloudGroupIdsList.size());
-
-    log.debug("readNextcloudUsers");
-    nextcloudUserIdsList.clear();
-    nextcloudUserIdsList.addAll(nextcloudClient.listUsers());
-    log.info("loaded {} nextcloud users", nextcloudUserIdsList.size());
+    nextcloudGroupIds.clear();
+    nextcloudGroupIds.addAll(nextcloudClient.listGroups());
+    log.info("loaded {} nextcloud groups", nextcloudGroupIds.size());
   }
 
-  public NextcloudUser createUser(NextcloudUser user)
+  public void readNextcloudUsers()
+  {
+    log.debug("readNextcloudUsers");
+    nextcloudUserIds.clear();
+    nextcloudUserIds.addAll(nextcloudClient.listUsers());
+    log.info("loaded {} nextcloud users", nextcloudUserIds.size());
+  }
+
+  public NextcloudUser findUserById(String userId)
+  {
+    NextcloudUser user = null;
+
+    try
+    {
+      user = nextcloudClient.findUser(userId);
+    }
+    catch(Throwable t)
+    {
+      // 
+    }
+
+    return user;
+  }
+
+  public synchronized NextcloudUser createUser(NextcloudUser user)
   {
     if(config.isDryRun())
     {
@@ -65,38 +84,41 @@ public class NextcloudHandler
       log.info("CREATE: {}", user);
       try
       {
-        user = nextcloudClient.usersCreate(user);
+        nextcloudClient.userCreate(user);
       }
       catch(Throwable t)
       {
-        delayedErrorExit("*** CREATE FAILED *** " + t.getMessage());
+        delayedErrorExit("*** CREATE USER FAILED *** " + t.getMessage());
       }
     }
 
     return user;
   }
 
-  public NextcloudUser updateUser(NextcloudUser user)
+  public synchronized void updateUser(String userId, String key, String value)
   {
-    if(config.isDryRun())
+    if(userId != null && key != null && value != null)
     {
-      log.info("UPDATE DRY RUN: {}", user);
-    }
-    else
-    {
-      try
+      if(config.isDryRun())
       {
-        log.info("UPDATE: {}", objectMapper.writeValueAsString(user));
-        user = nextcloudClient.usersUpdate(user.getId(), user);
+        log.info("UPDATE DRY RUN: {},{},{}", userId, key, value);
       }
-      catch(Throwable t)
+      else
       {
-        delayedErrorExit("*** UPDATE FAILED *** " + t.getMessage());
+        try
+        {
+          log.info("UPDATE: {}", userId);
+          nextcloudClient.userUpdate(userId, key, value);
+        }
+        catch(Throwable t)
+        {
+          t.printStackTrace();
+          delayedErrorExit("*** UPDATE USER FAILED *** " + t.getMessage());
+        }
       }
     }
-
-    return user;
   }
+  
 
   public void deleteUser(String user)
   {
@@ -121,6 +143,50 @@ public class NextcloudHandler
     }
   }
 
+  public synchronized NextcloudGroup createGroup(String groupId, String description)
+  {
+    NextcloudGroup group = new NextcloudGroup(groupId, description);
+
+    if(config.isDryRun())
+    {
+      log.info("CREATE DRY RUN: {}", group);
+    }
+    else
+    {
+      log.info("CREATE: {}", group);
+      try
+      {
+        nextcloudClient.groupCreate(group);
+      }
+      catch(Throwable t)
+      {
+        delayedErrorExit("*** CREATE GROUP FAILED *** " + t.getMessage());
+      }
+    }
+
+    return group;
+  }
+
+  public synchronized void updateGroup(String groupId, String displayName)
+  {
+    if(config.isDryRun())
+    {
+      log.info("UPDATE DRY RUN: {}", groupId);
+    }
+    else
+    {
+      log.info("UPDATE: {}", groupId);
+      try
+      {
+        nextcloudClient.groupUpdateDisplayname(groupId, displayName);
+      }
+      catch(Throwable t)
+      {
+        delayedErrorExit("*** UPDATE GROUP FAILED *** " + t.getMessage());
+      }
+    }
+  }
+
   private void delayedErrorExit(String message)
   {
 
@@ -140,9 +206,9 @@ public class NextcloudHandler
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Getter
-  private final List<String> nextcloudUserIdsList = new ArrayList<>();
+  private final Set<String> nextcloudUserIds = new HashSet<>();
 
   @Getter
-  private final List<String> nextcloudGroupIdsList = new ArrayList<>();
+  private final Set<String> nextcloudGroupIds = new HashSet<>();
 
 }

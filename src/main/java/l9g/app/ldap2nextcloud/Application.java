@@ -23,9 +23,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.shell.command.annotation.CommandScan;
 import org.springframework.shell.jline.PromptProvider;
+import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication
 @CommandScan
+@EnableRetry
 public class Application
 {
   public final static String CONFIG_PATH = "data" + File.separator;

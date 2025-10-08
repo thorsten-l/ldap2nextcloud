@@ -18,9 +18,7 @@ package l9g.app.ldap2nextcloud.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,122 +34,82 @@ import lombok.ToString;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class NextcloudUser
 {
+  @JsonProperty("userid")
+  private String userId;
 
-  public boolean hasAnyRoles(List<Integer> roleIds)
-  {
-    boolean result = false;
-    
-    if (role_ids != null && roleIds != null)
-    {
-      for (Integer roleId : roleIds)
-      {
-        if (role_ids.contains(roleId))
-        {
-          result = true;
-          break;
-        }
-      }
-    }
-    
-    return result;
-  }
-
-  public String toStringShort()
-  {
-    return "(login=" + getLogin() + ", email=" + getEmail() + ")";
-  }
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer id;
-
-  private Integer organization_id;
-
-  private String organization;
-
-  private String login;
-
-  private String firstname;
-
-  private String lastname;
-
+  // private String storageLocation;
+  // private Long firstLoginTimestamp;
+  // private Long lastLoginTimestamp;
+  // private Long lastLogin;
+  // private String backend;
+  // private List<String> subadmin;
+  // private Quota quota;
+  // private String manager;
   private String email;
 
-  private String password;
-
-  /*
-  private Object image;
-
-  private Object image_source;
-   */
-  private String web;
+  //@JsonProperty("additional_mail")
+  //private List<String> additionalMail;
+  
+  @JsonProperty("displayname")
+  private String displayName;
 
   private String phone;
 
-  private String fax;
+  private String address;
 
-  private String mobile;
+  private String website;
 
-  private String department;
-
-  private Boolean vip;
-
-  private Boolean verified;
-
-  private Boolean active;
-
-  private Boolean prepare_for_deletion;
-
-  private String note;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Date last_login;
-
-  // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private String source;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer login_failed;
-
-  private Boolean out_of_office;
-
-  /*
-  private Object out_of_office_start_at;
-
-  private Object out_of_office_end_at;
-
-  private Object out_of_office_replacement_id;
-   */
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer updated_by_id;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Integer created_by_id;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Date created_at;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private Date updated_at;
+  //private String twitter;
+  //private String fediverse;
+  private String organisation;
   
-  // additional attributes
-  private String customernumber;
+  private String quota;
 
-  private String location;
+  //private String role;
+  //private String headline;
+  //private String biography;
+  //@JsonProperty("profile_enabled")
+  //private String profileEnabled;
+  //private String pronouns;
+  private List<String> groups;
 
-  private String building;
-  
-  private String room;
+  private String language;
 
-  private List<String> roles;
+  private String locale;
 
-  private List<Integer> role_ids;
+  //@JsonProperty("notify_email")
+  //private String notifyEmail;
+  //private BackendCapabilities backendCapabilities;
+  @ToString
+  @Getter
+  @Setter
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  public static class Quota
+  {
+    private long free;
 
-  private List<Integer> organization_ids;
+    private long used;
 
-  private List<Integer> authorization_ids;
+    private long total;
 
-  private List<Integer> overview_sorting_ids;
+    private double relative;
 
-  private Map<String, String[]> group_ids;
+    private long quota;
+
+  }
+
+  @ToString
+  @Getter
+  @Setter
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  public static class BackendCapabilities
+  {
+    private boolean setDisplayName;
+
+    private boolean setPassword;
+
+  }
+
 }

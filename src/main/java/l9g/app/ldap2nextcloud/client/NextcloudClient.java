@@ -16,13 +16,20 @@
 package l9g.app.ldap2nextcloud.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import l9g.app.ldap2nextcloud.model.NextcloudGroup;
 import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  *
@@ -83,6 +90,8 @@ public class NextcloudClient
     return new ArrayList<>();
   }
 
+  @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
+             @Backoff(delay = 2000, multiplier = 2))
   public int usersDelete(String user)
   {
     int statuscode = -1;
@@ -107,13 +116,131 @@ public class NextcloudClient
     return statuscode;
   }
 
-  public NextcloudUser usersUpdate(@PathVariable(name = "id") int id,
-    @RequestBody NextcloudUser user)
+  @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
+             @Backoff(delay = 2000, multiplier = 2))
+  public int groupCreate(NextcloudGroup group)
   {
-    return null;
+    int statuscode = -1;
+
+    log.debug("groupCreate({})", group.getDisplayName());
+
+    OcsMetaResult result = restClient
+      .post()
+      .uri("/ocs/v2.php/cloud/groups?format=json")
+      .contentType(MediaType.APPLICATION_JSON)
+      .accept(MediaType.APPLICATION_JSON)
+      .body(group)
+      .retrieve()
+      .body(OcsMetaResult.class);
+
+    if(result != null
+      && result.getOcs() != null
+      && result.getOcs().getMeta().getStatus() != null)
+    {
+      statuscode = result.getOcs().getMeta().getStatuscode(); // 200 == ok
+    }
+
+    log.debug("  - status code = {}", statuscode);
+
+    return statuscode;
   }
 
-  public NextcloudUser usersCreate(@RequestBody NextcloudUser user)
+  @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
+             @Backoff(delay = 2000, multiplier = 2))
+  public int groupUpdateDisplayname(String groupId, String displayname)
+  {
+    int statuscode = -1;
+
+    log.debug("groupUpdate({},{})", groupId, displayname);
+
+    Map<String, String> payload = new HashMap<>();
+    payload.put("key", "displayname");
+    payload.put("value", displayname);
+
+    OcsMetaResult result = restClient
+      .put()
+      .uri("/ocs/v2.php/cloud/groups/{groupid}", groupId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .accept(MediaType.APPLICATION_JSON)
+      .body(payload)
+      .retrieve()
+      .body(OcsMetaResult.class);
+
+    if(result != null
+      && result.getOcs() != null
+      && result.getOcs().getMeta().getStatus() != null)
+    {
+      statuscode = result.getOcs().getMeta().getStatuscode(); // 200 == ok
+    }
+
+    log.debug("  - status code = {}", statuscode);
+
+    return statuscode;
+  }
+
+  @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
+             @Backoff(delay = 2000, multiplier = 2))
+  public int userUpdate(String userId, String key, String value)
+  {
+    int statuscode = -1;
+
+    log.debug("userUpdate({},{},{})", userId, key, value);
+
+    Map<String, String> payload = new HashMap<>();
+    payload.put("key", key);
+    payload.put("value", value);
+
+    OcsMetaResult result = restClient
+      .put()
+      .uri("/ocs/v2.php/cloud/users/{userId}", userId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .accept(MediaType.APPLICATION_JSON)
+      .body(payload)
+      .retrieve()
+      .body(OcsMetaResult.class);
+
+    if(result != null
+      && result.getOcs() != null
+      && result.getOcs().getMeta().getStatus() != null)
+    {
+      statuscode = result.getOcs().getMeta().getStatuscode(); // 200 == ok
+    }
+
+    log.debug("  - status code = {}", statuscode);
+
+    return statuscode;
+  }
+
+  @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
+             @Backoff(delay = 2000, multiplier = 2))
+  public int userCreate(NextcloudUser user)
+  {
+    int statuscode = -1;
+
+    log.debug("userCreate({})", user);
+
+    OcsMetaResult result = restClient
+      .post()
+      .uri("/ocs/v2.php/cloud/users")
+      .contentType(MediaType.APPLICATION_JSON)
+      .accept(MediaType.APPLICATION_JSON)
+      .body(user)
+      .retrieve()
+      .body(OcsMetaResult.class);
+
+    if(result != null
+      && result.getOcs() != null
+      && result.getOcs().getMeta().getStatus() != null)
+    {
+      statuscode = result.getOcs().getMeta().getStatuscode(); // 200 == ok
+    }
+
+    log.debug("  - status code = {}", statuscode);
+
+    return statuscode;
+  }
+
+  public NextcloudUser findUser(String userId)
   {
     return null;
   }

@@ -29,6 +29,7 @@ import javax.net.ssl.X509TrustManager;
 import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jline.utils.Timeout;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -63,7 +64,7 @@ public class NextcloudClientFactory
     throws SSLException
   {
     RestClient.Builder builder = restClientBuilder;
-
+    
     log.debug("createRestNextcloudClient");
     log.debug("  base-url = {}", nextcloudBaseUrl);
     log.debug("  ocs user = {}", nextcloudOcsUser);
@@ -73,7 +74,8 @@ public class NextcloudClientFactory
     {
       log.warn("TRUSTING ALL CERTIFICATES.");
       HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(10));
+        .connectTimeout(Duration.ofSeconds(10))
+        .version(HttpClient.Version.HTTP_1_1);
 
       try
       {
@@ -117,6 +119,7 @@ public class NextcloudClientFactory
       (nextcloudOcsUser + ":" + nextcloudOcsPassword).getBytes(StandardCharsets.UTF_8)
     );
 
+    
     RestClient restClient = builder
       .baseUrl(nextcloudBaseUrl)
       .defaultHeaders(headers ->
