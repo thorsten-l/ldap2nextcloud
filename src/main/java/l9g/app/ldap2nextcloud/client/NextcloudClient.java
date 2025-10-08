@@ -24,8 +24,6 @@ import l9g.app.ldap2nextcloud.model.NextcloudUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.retry.annotation.Backoff;
