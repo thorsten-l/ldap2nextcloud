@@ -26,6 +26,7 @@ import l9g.app.ldap2nextcloud.client.NextcloudClient;
 import l9g.app.ldap2nextcloud.model.NextcloudGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  *
@@ -40,6 +41,9 @@ public class NextcloudHandler
   private final Config config;
 
   private final NextcloudClient nextcloudClient;
+
+  @Value("${nextcloud.quota-default:nolimit}")
+  String quotaDefault;
 
   public void readNextcloudGroups()
   {
@@ -75,6 +79,7 @@ public class NextcloudHandler
 
   public synchronized NextcloudUser createUser(NextcloudUser user)
   {
+    long startTimestamp = System.currentTimeMillis();
     if(config.isDryRun())
     {
       log.info("CREATE DRY RUN: {}", user);
@@ -84,14 +89,26 @@ public class NextcloudHandler
       log.info("CREATE: {}", user);
       try
       {
+        if( ! "nolimit".equals(quotaDefault))
+        {
+          user.setQuota(quotaDefault);
+        }
         nextcloudClient.userCreate(user);
+        String userId = user.getUserId();
+        updateUser(userId, "displayname", user.getDisplayName());
+        updateUser(userId, "address", user.getAddress());
+        updateUser(userId, "website", user.getWebsite());
+        updateUser(userId, "organisation", user.getOrganisation());
+        updateUser(userId, "locale", user.getLocale());
+        updateUser(userId, "language", user.getLanguage());
+        updateUser(userId, "phone", user.getPhone());
       }
       catch(Throwable t)
       {
         delayedErrorExit("*** CREATE USER FAILED *** " + t.getMessage());
       }
     }
-
+    log.debug("duration : {}ms", System.currentTimeMillis() - startTimestamp);
     return user;
   }
 
@@ -113,12 +130,42 @@ public class NextcloudHandler
         catch(Throwable t)
         {
           t.printStackTrace();
+          delayedErrorExit("*** UPDATE USER KEY FAILED *** " + t.getMessage());
+        }
+      }
+    }
+  }
+
+  public synchronized void updateUser(NextcloudUser user)
+  {
+    if(user != null)
+    {
+      if(config.isDryRun())
+      {
+        log.info("UPDATE DRY RUN: {}", user);
+      }
+      else
+      {
+        try
+        {
+          log.info("UPDATE: {}", user);
+
+          String userId = user.getUserId();
+          updateUser(userId, "displayname", user.getDisplayName());
+          updateUser(userId, "address", user.getAddress());
+          updateUser(userId, "email", user.getEmail());
+          updateUser(userId, "phone", user.getPhone());
+
+          /* TODO: Group inspect changes */
+        }
+        catch(Throwable t)
+        {
+          t.printStackTrace();
           delayedErrorExit("*** UPDATE USER FAILED *** " + t.getMessage());
         }
       }
     }
   }
-  
 
   public void deleteUser(String user)
   {
