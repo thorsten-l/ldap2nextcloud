@@ -169,57 +169,20 @@ public class ApplicationCommands
         NextcloudUser updateUser = new NextcloudUser();
         updateUser.setUserId(userId);
         updateUser.setGroups(groups);
-
+        
         if(nextcloudHandler.getNextcloudUserIds().contains(userId))
         {
-          // updateUser.setUserId(nextcloudUser.getUserId());
-
-          /*
-          if (zammadUser.hasAnyRoles(config.getSyncProtectedRoleIds()))
-          {
-            // IGNORE protected Users
-            LOGGER.warn("IGNORE UPDATE PROTECTED USER: {})", zammadUser.toStringShort());
-            ignoreCounter++;
-          }
-          else
-          {
-           
-            // UPDATE
-            if (config.isSyncTagSyncerRolesEnabled()
-              && config.isSyncRemoveTaggedRolesBeforUpdateUser())
-            {
-              zammadUser.getRole_ids().forEach(roleId ->
-              {
-                String roleName
-                  = nextcloudHandler.getNextcloudRoleMap().get(roleId).getName();
-                
-                if (!roleId.equals(config.getSyncDefaultRoleId())
-                  && !roleName.startsWith(config.getSyncRolesTag()))
-                {
-                  roles.add(roleName);
-                }
-              });
-            }
-
-            js.getValue().executeVoid("update", updateUser, entry);
-            nextcloudHandler.updateUser(updateUser);
-            updateCounter++;
-          }*/
+          // js.getValue().executeVoid("update", updateUser, entry);
+          // checkGroups(updateUser);
+          // nextcloudHandler.updateUser(updateUser);
+          updateCounter ++;
         }
         else
         {
           // CREATE
           js.getValue().executeVoid("create", updateUser, entry);
           checkGroups(updateUser);
-          updateUser.setQuota("26843545600");
           nextcloudHandler.createUser(updateUser);
-          nextcloudHandler.updateUser(updateUser.getUserId(), "displayname", updateUser.getDisplayName());
-          nextcloudHandler.updateUser(updateUser.getUserId(), "address", updateUser.getAddress());
-          nextcloudHandler.updateUser(updateUser.getUserId(), "website", updateUser.getWebsite());
-          nextcloudHandler.updateUser(updateUser.getUserId(), "organisation", updateUser.getOrganisation());
-          nextcloudHandler.updateUser(updateUser.getUserId(), "locale", updateUser.getLocale());
-          nextcloudHandler.updateUser(updateUser.getUserId(), "language", updateUser.getLanguage());
-          // nextcloudHandler.updateUser(updateUser.getUserId(), "phone", updateUser.getPhone());
           createCounter ++;
         }
       }
@@ -289,6 +252,35 @@ public class ApplicationCommands
     }
 
     LOGGER.info("{} groups updated", updateCounter);
+  }
+
+  @Command(description = "update user phonenumbers from LDAP to Nextcloud")
+  public void updatePhoneNumbers()
+    throws Throwable
+  {
+    nextcloudHandler.readNextcloudUsers();
+    ldapHandler.readLdapEntries(new ASN1GeneralizedTime(0l), true);
+    try(JavaScriptEngine js = new JavaScriptEngine())
+    {
+      for(String userId : nextcloudHandler.getNextcloudUserIds())
+      {
+        Entry entry = ldapHandler.getLdapEntryMap().get(userId);
+        if(entry != null)
+        {
+          String phone = entry.getAttributeValue("telephoneNumber");
+          if(phone != null)
+          {
+            ArrayList<String> groups = new ArrayList<>();
+            NextcloudUser updateUser = new NextcloudUser();
+            updateUser.setUserId(userId);
+            updateUser.setGroups(groups);
+            js.getValue().executeVoid("update", updateUser, entry);
+            LOGGER.debug("UPDATE {} phone = {}", userId, updateUser.getPhone());
+            nextcloudHandler.updateUser(userId, "phone", updateUser.getPhone());
+          }
+        }
+      }
+    }
   }
 
   private int createGroupCounter;
