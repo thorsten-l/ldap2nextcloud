@@ -29,12 +29,11 @@ import javax.net.ssl.X509TrustManager;
 import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jline.utils.Timeout;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 
 /**
  *
@@ -57,18 +56,16 @@ public class NextcloudClientFactory
   @Value("${nextcloud.trust-all-certificates:}")
   boolean nextcloudTrustAllCertificates;
 
-  private final RestClient.Builder restClientBuilder;
-
   @Bean
-  public NextcloudClient createRestNextcloudClient()
+  public RestTemplate createRestTemplate()
     throws SSLException
   {
-    RestClient.Builder builder = restClientBuilder;
-    
-    log.debug("createRestNextcloudClient");
+    log.debug("createRestTemplate");
     log.debug("  base-url = {}", nextcloudBaseUrl);
     log.debug("  ocs user = {}", nextcloudOcsUser);
     log.trace("  ocs password = {}", nextcloudOcsPassword);
+
+    RestTemplate restTemplate = new RestTemplate();
 
     if(nextcloudTrustAllCertificates)
     {
@@ -112,25 +109,26 @@ public class NextcloudClientFactory
       }
 
       HttpClient jdkClient = httpClientBuilder.build();
-      builder = restClientBuilder.requestFactory(new JdkClientHttpRequestFactory(jdkClient));
+      restTemplate.setRequestFactory(new JdkClientHttpRequestFactory(jdkClient));
     }
 
     String basicAuthValue = "Basic " + Base64.getEncoder().encodeToString(
       (nextcloudOcsUser + ":" + nextcloudOcsPassword).getBytes(StandardCharsets.UTF_8)
     );
 
-    
-    RestClient restClient = builder
-      .baseUrl(nextcloudBaseUrl)
-      .defaultHeaders(headers ->
-      {
-        headers.add("Authorization", basicAuthValue);
-        headers.add("OCS-APIRequest", "true");
-        headers.add("Accept", "application/json");
-      })
-      .build();
+    restTemplate.getInterceptors().add((request, body, execution) -> {
+      request.getHeaders().add("Authorization", basicAuthValue);
+      request.getHeaders().add("OCS-APIRequest", "true");
+      request.getHeaders().add("Accept", "application/json");
+      return execution.execute(request, body);
+    });
 
-    return new NextcloudClient(restClient);
+    return restTemplate;
+  }
+
+  @Bean
+  public NextcloudClient createNextcloudClient(RestTemplate restTemplate) {
+    return new NextcloudClient(restTemplate);
   }
 
 }

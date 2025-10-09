@@ -27,7 +27,7 @@ import l9g.app.ldap2nextcloud.config.AttributesMapService;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
 import l9g.app.ldap2nextcloud.handler.NextcloudHandler;
-import l9g.app.ldap2nextcloud.model.NextcloudUser;
+import l9g.app.ldap2nextcloud.model.NextcloudCreateUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -73,8 +73,7 @@ public class ApplicationCommands
   )
     throws Throwable
   {
-    debug = true;
-    fullSync = true;
+    // debug = true;
 
     logbackConfig.getRootLogger().setLevel(Level.INFO);
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
@@ -92,12 +91,7 @@ public class ApplicationCommands
     }
 
     LOGGER.info("dry-run = '{}', full-sync = '{}', debug = '{}', trace = '{}'", dryRun, fullSync, debug, trace);
-    /*
-    LOGGER.info("ldap server: 'ldap{}://{}:{}'",
-      (config.isLdapSslEnabled())?"s":"",
-      config.getLdapHostname(),
-      config.getLdapPort());
-     */
+ 
     config.setDebug(debug);
     config.setDryRun(dryRun);
 
@@ -163,18 +157,16 @@ public class ApplicationCommands
         LOGGER.debug("{}/{}", entryCounter, noEntries);
 
         String userId = entry.getAttributeValue(ldapHandler.getLdapUserId());
-        // NextcloudUser nextcloudUser = nextcloudHandler.findUserById(login);
-
         ArrayList<String> groups = new ArrayList<>();
-        NextcloudUser updateUser = new NextcloudUser();
+        NextcloudCreateUser updateUser = new NextcloudCreateUser();
         updateUser.setUserId(userId);
         updateUser.setGroups(groups);
         
         if(nextcloudHandler.getNextcloudUserIds().contains(userId))
         {
-          // js.getValue().executeVoid("update", updateUser, entry);
-          // checkGroups(updateUser);
-          // nextcloudHandler.updateUser(updateUser);
+          js.getValue().executeVoid("update", updateUser, entry);
+          checkGroups(updateUser);
+          nextcloudHandler.updateUser(updateUser);
           updateCounter ++;
         }
         else
@@ -206,7 +198,7 @@ public class ApplicationCommands
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
   }
 
-  private void checkGroups(NextcloudUser user)
+  private void checkGroups(NextcloudCreateUser user)
     throws Throwable
   {
     LOGGER.debug("Check groups for user {} {}", user.getDisplayName(), user.getUserId());
@@ -271,7 +263,7 @@ public class ApplicationCommands
           if(phone != null)
           {
             ArrayList<String> groups = new ArrayList<>();
-            NextcloudUser updateUser = new NextcloudUser();
+            NextcloudCreateUser updateUser = new NextcloudCreateUser();
             updateUser.setUserId(userId);
             updateUser.setGroups(groups);
             js.getValue().executeVoid("update", updateUser, entry);

@@ -19,11 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.Set;
 import l9g.app.ldap2nextcloud.Config;
-import l9g.app.ldap2nextcloud.model.NextcloudUser;
+import l9g.app.ldap2nextcloud.model.NextcloudCreateUser;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 import l9g.app.ldap2nextcloud.client.NextcloudClient;
+import l9g.app.ldap2nextcloud.config.AttributesMapService;
 import l9g.app.ldap2nextcloud.model.NextcloudGroup;
+import l9g.app.ldap2nextcloud.model.NextcloudUpdateUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,8 @@ public class NextcloudHandler
   private final Config config;
 
   private final NextcloudClient nextcloudClient;
+
+  private final AttributesMapService attributesMapService;
 
   @Value("${nextcloud.quota-default:nolimit}")
   String quotaDefault;
@@ -61,13 +65,13 @@ public class NextcloudHandler
     log.info("loaded {} nextcloud users", nextcloudUserIds.size());
   }
 
-  public NextcloudUser findUserById(String userId)
+  public NextcloudUpdateUser findUserById(String userId)
   {
-    NextcloudUser user = null;
+    NextcloudUpdateUser user = null;
 
     try
     {
-      user = nextcloudClient.findUser(userId);
+      user = nextcloudClient.findUserById(userId);
     }
     catch(Throwable t)
     {
@@ -77,7 +81,7 @@ public class NextcloudHandler
     return user;
   }
 
-  public synchronized NextcloudUser createUser(NextcloudUser user)
+  public synchronized NextcloudCreateUser createUser(NextcloudCreateUser user)
   {
     long startTimestamp = System.currentTimeMillis();
     if(config.isDryRun())
@@ -118,13 +122,13 @@ public class NextcloudHandler
     {
       if(config.isDryRun())
       {
-        log.info("UPDATE DRY RUN: {},{},{}", userId, key, value);
+        log.debug("UPDATE DRY RUN: {},{},{}", userId, key, value);
       }
       else
       {
         try
         {
-          log.info("UPDATE: {}", userId);
+          log.debug("UPDATE: {}", userId);
           nextcloudClient.userUpdate(userId, key, value);
         }
         catch(Throwable t)
@@ -136,7 +140,7 @@ public class NextcloudHandler
     }
   }
 
-  public synchronized void updateUser(NextcloudUser user)
+  public synchronized void updateUser(NextcloudCreateUser user)
   {
     if(user != null)
     {
@@ -151,12 +155,39 @@ public class NextcloudHandler
           log.info("UPDATE: {}", user);
 
           String userId = user.getUserId();
-          updateUser(userId, "displayname", user.getDisplayName());
-          updateUser(userId, "address", user.getAddress());
-          updateUser(userId, "email", user.getEmail());
-          updateUser(userId, "phone", user.getPhone());
+          NextcloudUpdateUser nextcloudUser = nextcloudClient.findUserById(userId);
+          if(nextcloudUser != null)
+          {
+            log.debug("update user : {}", user);
+            log.debug("nextcloud user : {}", nextcloudUser);
 
-          /* TODO: Group inspect changes */
+            updateUser(userId, "displayname", user.getDisplayName());
+            updateUser(userId, "address", user.getAddress());
+            updateUser(userId, "email", user.getEmail());
+            updateUser(userId, "phone", user.getPhone());
+            updateUser(userId, "website", user.getWebsite());
+            updateUser(userId, "organisation", user.getOrganisation());
+
+            // check groups to remove from
+            nextcloudUser.getGroups().forEach(group ->
+            {
+              if( ! user.getGroups().contains(group) 
+              && attributesMapService.getGroups().containsKey(group)) // remove from configurated groups only
+              {
+                log.debug("REMOVE: user {} from group {}", userId, group);
+                nextcloudClient.userRemoveGroup( userId, group );
+              }
+            });
+
+            // check groups to add to
+            user.getGroups().forEach(group -> {
+              if ( ! nextcloudUser.getGroups().contains(group))
+              {
+                log.debug("ADD: user {} to group {}", userId, group);
+                nextcloudClient.userAddGroup( userId, group );
+              }
+            });
+          }
         }
         catch(Throwable t)
         {

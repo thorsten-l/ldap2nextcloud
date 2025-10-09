@@ -24,7 +24,7 @@ import java.util.Map;
 import l9g.app.ldap2nextcloud.LogbackConfig;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
-import l9g.app.ldap2nextcloud.model.NextcloudUser;
+import l9g.app.ldap2nextcloud.model.NextcloudCreateUser;
 import l9g.app.ldap2nextcloud.client.NextcloudClient;
 import l9g.app.ldap2nextcloud.config.AttributesMapService;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +66,7 @@ public class TestCommands
       {
         Entry entry = ldapHandler.getLdapEntryMap().get(login);
         System.out.println("\n" + ( ++ counter) + " : " + entry);
-        NextcloudUser user = new NextcloudUser();
+        NextcloudCreateUser user = new NextcloudCreateUser();
         user.setUserId(login);
         js.getValue().executeVoid("test", user, entry);
         System.out.println(objectMapper.writeValueAsString(user));

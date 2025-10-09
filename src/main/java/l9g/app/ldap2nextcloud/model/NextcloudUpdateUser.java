@@ -32,24 +32,18 @@ import lombok.ToString;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class NextcloudUser
+public class NextcloudUpdateUser
 {
-  @JsonProperty("userid")
+  @JsonProperty("id")
   private String userId;
 
-  // private String storageLocation;
-  // private Long firstLoginTimestamp;
-  // private Long lastLoginTimestamp;
-  // private Long lastLogin;
-  // private String backend;
-  // private List<String> subadmin;
-  // private Quota quota;
-  // private String manager;
+  private Boolean enabled;
+
   private String email;
 
-  //@JsonProperty("additional_mail")
-  //private List<String> additionalMail;
-  
+  @JsonProperty("additional_mail")
+  private List<String> additionalMail;
+
   @JsonProperty("displayname")
   private String displayName;
 
@@ -59,27 +53,36 @@ public class NextcloudUser
 
   private String website;
 
-  //private String twitter;
-  //private String fediverse;
-  private String organisation;
-  
-  private String quota;
+  private String twitter;
 
-  //private String role;
-  //private String headline;
-  //private String biography;
-  //@JsonProperty("profile_enabled")
-  //private String profileEnabled;
-  //private String pronouns;
+  private String fediverse;
+
+  private String organisation;
+
+  private Quota quota;
+
+  private String role;
+
+  private String headline;
+
+  private String biography;
+
+  @JsonProperty("profile_enabled")
+  private String profileEnabled;
+
+  private String pronouns;
+
   private List<String> groups;
 
   private String language;
 
   private String locale;
 
-  //@JsonProperty("notify_email")
-  //private String notifyEmail;
-  //private BackendCapabilities backendCapabilities;
+  @JsonProperty("notify_email")
+  private String notifyEmail;
+
+  private BackendCapabilities backendCapabilities;
+
   @ToString
   @Getter
   @Setter

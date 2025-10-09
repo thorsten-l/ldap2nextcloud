@@ -30,7 +30,7 @@ limitations under the License.
   
   <groupId>l9g.app</groupId>
   <artifactId>ldap2nextcloud</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.9.1-SNAPSHOT</version>
   <name>ldap2nextcloud</name>
   
   <description>Sync LDAP users to NextCloud</description>
