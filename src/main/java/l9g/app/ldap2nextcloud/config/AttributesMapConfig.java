@@ -15,7 +15,7 @@
  */
 package l9g.app.ldap2nextcloud.config;
 
-import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +44,7 @@ public class AttributesMapConfig
   {
     private String ldapAttributeName;
 
-    private List<String> mappingList;
+    private Map<String,String> mappingList;
 
   }
 

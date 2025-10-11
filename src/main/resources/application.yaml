@@ -40,18 +40,6 @@ logging:
     reactor.netty.channel: OFF
     io.netty.util.internal: OFF
 
-# DEVELOPMENT
-zammad:
-  base-url: https://tickets.dev.sonia.de 
-  token: "unset"
-  trust-all-certificates: false
-
-# QA
-#zammad:
-#  base-url: https://zammad.sonia.de
-#  token: "unset"
-#  trust-all-certificates: true
-
 ldap:
   host:
     name: id.dev.sonia.de
@@ -75,16 +63,19 @@ mail:
     startTLS: true
   credentials:
     uid: "sonia.mail.sync"
-    password: "unset"
+    password: "notset"
   subject: "%date{yyyy-MM-dd HH:mm:ss} - %m"
   from: "Ldap2Nextcloud <sonia.mail.sync.ucware@ostfalia.de>"
-  receipients: t.ludewig@ostfalia.de
+  receipients: user@the.net
 
 sync:
   protected-users: admin,root
-  default-role: Customer
-  default-role-id: 0
-  protected-role-ids: 0
-  tag-syncer-roles: true
-  roles-tag: "_"
-  remove-tagged-roles-befor-update-user: true
+  protected-groups: admin
+
+nextcloud:
+  base-url: http://cloud.example.de
+  trust-all-certificates: false
+  quota-default: 26843545600
+  ocs:
+    user: admin
+    password: "notset"
