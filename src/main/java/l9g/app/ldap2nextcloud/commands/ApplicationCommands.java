@@ -203,25 +203,27 @@ public class ApplicationCommands
     throws Throwable
   {
     LOGGER.debug("Check groups for user {} {}", user.getDisplayName(), user.getUserId());
-    user.getGroups().forEach(group ->
+    if( ! config.isDryRun())
     {
-      if( ! attributesMapService.getGroups().containsKey(group))
+      user.getGroups().forEach(group ->
       {
-        LOGGER.error("ERROR: Group '{}' not found in map!", group);
-        throw new RuntimeException("ERROR: Group not found in map! : " + group);
-      }
+        if( ! attributesMapService.getGroups().containsKey(group))
+        {
+          LOGGER.error("ERROR: Group '{}' not found in map!", group);
+          throw new RuntimeException("ERROR: Group not found in map! : " + group);
+        }
 
-      if( ! nextcloudHandler.getNextcloudGroupIds().contains(group))
-      {
-        String displayName = attributesMapService.getGroups().get(group);
-        LOGGER.info("Creating group {}, {} = {}", group, displayName,
-          nextcloudHandler.createGroup(group, displayName));
-        nextcloudHandler.getNextcloudGroupIds().add(group);
-        createGroupCounter ++;
-      }
+        if( ! nextcloudHandler.getNextcloudGroupIds().contains(group))
+        {
+          String displayName = attributesMapService.getGroups().get(group);
+          LOGGER.info("Creating group {}, {} = {}", group, displayName,
+            nextcloudHandler.createGroup(group, displayName));
+          nextcloudHandler.getNextcloudGroupIds().add(group);
+          createGroupCounter ++;
+        }
 
-    });
-
+      });
+    }
   }
 
   @Command(description = "update group displaynames from config to Nextcloud")
