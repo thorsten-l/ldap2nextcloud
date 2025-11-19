@@ -28,6 +28,7 @@ import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
 import l9g.app.ldap2nextcloud.handler.NextcloudHandler;
 import l9g.app.ldap2nextcloud.model.NextcloudCreateUser;
+import l9g.app.ldap2nextcloud.model.NextcloudGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -91,7 +92,7 @@ public class ApplicationCommands
     }
 
     LOGGER.info("dry-run = '{}', full-sync = '{}', debug = '{}', trace = '{}'", dryRun, fullSync, debug, trace);
- 
+
     config.setDebug(debug);
     config.setDryRun(dryRun);
 
@@ -161,7 +162,7 @@ public class ApplicationCommands
         NextcloudCreateUser updateUser = new NextcloudCreateUser();
         updateUser.setUserId(userId);
         updateUser.setGroups(groups);
-        
+
         if(nextcloudHandler.getNextcloudUserIds().contains(userId))
         {
           js.getValue().executeVoid("update", updateUser, entry);
@@ -274,6 +275,27 @@ public class ApplicationCommands
       }
     }
   }
+
+  @Command(description = "Remove all configured groups from Nextcloud")
+  public void deleteAllConfiguredGroups()
+    throws Throwable
+  {
+    nextcloudHandler.readNextcloudGroups();
+    deleteGroupCounter = 0;
+    attributesMapService.getGroups().forEach((groupId, displayName) ->
+    {
+
+      if(nextcloudHandler.getNextcloudGroupIds().contains(groupId))
+      {
+        deleteGroupCounter ++;
+        LOGGER.debug("DELETE group ({}) : {}, {}", deleteGroupCounter, groupId, displayName);
+        nextcloudHandler.deleteGroup(groupId);
+      }
+
+    });
+  }
+
+  private int deleteGroupCounter;
 
   private int createGroupCounter;
 

@@ -211,7 +211,7 @@ public class NextcloudHandler
       log.info("DELETE user: {}", user);
       try
       {
-        nextcloudClient.usersDelete(user);
+        nextcloudClient.userDelete(user);
         // nextcloudClient.usersAnonymize(user.getId(), anonymizedUser);
       }
       catch(Throwable t)
@@ -257,6 +257,26 @@ public class NextcloudHandler
       try
       {
         nextcloudClient.groupUpdateDisplayname(groupId, displayName);
+      }
+      catch(Throwable t)
+      {
+        delayedErrorExit("*** UPDATE GROUP FAILED *** " + t.getMessage());
+      }
+    }
+  }
+  
+  public synchronized void deleteGroup(String groupId)
+  {
+    if(config.isDryRun())
+    {
+      log.info("DELETE DRY RUN: {}", groupId);
+    }
+    else
+    {
+      log.info("DELETE: {}", groupId);
+      try
+      {
+        nextcloudClient.groupDelete(groupId);
       }
       catch(Throwable t)
       {

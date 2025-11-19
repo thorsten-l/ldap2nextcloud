@@ -112,7 +112,7 @@ public class NextcloudClient
 
   @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
              @Backoff(delay = 2000, multiplier = 2))
-  public int usersDelete(String user)
+  public int userDelete(String user)
   {
     int statuscode = -1;
 
@@ -121,6 +121,34 @@ public class NextcloudClient
     URI uri = UriComponentsBuilder
       .fromUriString(nextcloudBaseUrl)
       .pathSegment("ocs","v1.php","cloud","users", user)
+      .queryParam("format", "json").build().toUri();
+
+    log.debug("uri={}", uri);
+
+    ResponseEntity<OcsMetaResult> response = restTemplate.exchange(uri, 
+      HttpMethod.DELETE, null, OcsMetaResult.class);
+
+    if(response.getStatusCode() == HttpStatus.OK && response.getBody() != null)
+    {
+      statuscode = response.getBody().getOcs().getMeta().getStatuscode();
+    }
+
+    log.debug("  - status code = {}", statuscode);
+
+    return statuscode;
+  }
+  
+  @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
+             @Backoff(delay = 2000, multiplier = 2))
+  public int groupDelete(String groupId)
+  {
+    int statuscode = -1;
+
+    log.debug("groupDelete({})", groupId);
+
+    URI uri = UriComponentsBuilder
+      .fromUriString(nextcloudBaseUrl)
+      .pathSegment("ocs","v1.php","cloud","groups", groupId)
       .queryParam("format", "json").build().toUri();
 
     log.debug("uri={}", uri);
