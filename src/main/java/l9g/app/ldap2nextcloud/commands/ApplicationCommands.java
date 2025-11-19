@@ -48,23 +48,23 @@ public class ApplicationCommands
 {
   private final static Logger LOGGER =
     LoggerFactory.getLogger(ApplicationCommands.class);
-
+  
   private final Config config;
-
+  
   private final LdapHandler ldapHandler;
-
+  
   private final NextcloudHandler nextcloudHandler;
-
+  
   private final LogbackConfig logbackConfig;
-
+  
   private final AttributesMapService attributesMapService;
-
+  
   @Value("${sync.protected-users}")
   private List<String> protectedUsers;
-
+  
   @Value("${sync.protected-groups}")
   private List<String> protectedGroups;
-
+  
   @Command(description = "sync users from LDAP to Nextcloud")
   public void sync(
     @Option(longNames = "full-sync", defaultValue = "false") boolean fullSync,
@@ -78,41 +78,41 @@ public class ApplicationCommands
 
     logbackConfig.getRootLogger().setLevel(Level.INFO);
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
-
+    
     if(debug)
     {
       logbackConfig.getL9gLogger().setLevel(Level.DEBUG);
     }
-
+    
     if(trace)
     {
       debug = true;
       logbackConfig.getRootLogger().setLevel(Level.TRACE);
       logbackConfig.getL9gLogger().setLevel(Level.TRACE);
     }
-
+    
     LOGGER.info("dry-run = '{}', full-sync = '{}', debug = '{}', trace = '{}'", dryRun, fullSync, debug, trace);
-
+    
     config.setDebug(debug);
     config.setDryRun(dryRun);
-
+    
     int updateCounter = 0;
     int createCounter = 0;
     int deleteCounter = 0;
     int ignoreCounter = 0;
-
+    
     createGroupCounter = 0;
-
+    
     TimestampUtil timestampUtil = new TimestampUtil("nextcloud-users");
-
+    
     nextcloudHandler.readNextcloudGroups();
     nextcloudHandler.readNextcloudUsers();
-
+    
     ///////////////////////////////////////////////////////////////////////////
     // DELETE
     LOGGER.info("looking for users to delete");
     ldapHandler.readAllLdapEntryUIDs();
-
+    
     for(String user : nextcloudHandler.getNextcloudUserIds())
     {
       if( ! ldapHandler.getLdapEntryMap().containsKey(user))
@@ -131,10 +131,10 @@ public class ApplicationCommands
         }
       }
     }
-
+    
     ///////////////////////////////////////////////////////////////////////////
     ASN1GeneralizedTime timestamp;
-
+    
     if(fullSync)
     {
       timestamp = new ASN1GeneralizedTime(0l); // 01.01.1970, unix time 0
@@ -143,26 +143,26 @@ public class ApplicationCommands
     {
       timestamp = timestampUtil.getLastSyncTimestamp();
     }
-
+    
     LOGGER.info("looking for users to update or create since last sync ({})", timestamp.getStringRepresentation());
     ldapHandler.readLdapEntries(timestamp, true);
-
+    
     try(JavaScriptEngine js = new JavaScriptEngine())
     {
       int noEntries = ldapHandler.getLdapEntryMap().size();
       int entryCounter = 0;
-
+      
       for(Entry entry : ldapHandler.getLdapEntryMap().values())
       {
         entryCounter ++;
         LOGGER.debug("{}/{}", entryCounter, noEntries);
-
+        
         String userId = entry.getAttributeValue(ldapHandler.getLdapUserId());
         ArrayList<String> groups = new ArrayList<>();
         NextcloudCreateUser updateUser = new NextcloudCreateUser();
         updateUser.setUserId(userId);
         updateUser.setGroups(groups);
-
+        
         if(nextcloudHandler.getNextcloudUserIds().contains(userId))
         {
           js.getValue().executeVoid("update", updateUser, entry);
@@ -180,7 +180,7 @@ public class ApplicationCommands
         }
       }
     }
-
+    
     LOGGER.info("sync done\nSummary:"
       + "\n  updated {} user(s)"
       + "\n  created {} user(s)"
@@ -188,22 +188,21 @@ public class ApplicationCommands
       + "\n  ignored {} user(s)"
       + "\n  created {} group(s)",
       updateCounter, createCounter, deleteCounter, ignoreCounter, createGroupCounter);
-
+    
     ///////////////////////////////////////////////////////////////////////////
     if( ! dryRun)
     {
       timestampUtil.writeCurrentTimestamp();
     }
-
+    
     logbackConfig.getRootLogger().setLevel(Level.INFO);
     logbackConfig.getL9gLogger().setLevel(Level.INFO);
   }
-
+  
   private void checkGroups(NextcloudCreateUser user)
     throws Throwable
   {
-    LOGGER.debug( "size={}", attributesMapService.getGroups().size());
-    System.exit(0);
+    LOGGER.debug("size={}", attributesMapService.getGroups().size());
     
     LOGGER.debug("Check groups for user {} {}", user.getDisplayName(), user.getUserId());
     if( ! config.isDryRun())
@@ -212,10 +211,15 @@ public class ApplicationCommands
       {
         if( ! attributesMapService.getGroups().containsKey(group))
         {
+          attributesMapService.getGroups().forEach((key, value) ->
+          {
+            LOGGER.debug("'{}'", key);
+          });
+          LOGGER.debug("'{}'", group);
           LOGGER.error("ERROR: Group '{}' not found in map!", group);
           throw new RuntimeException("ERROR: Group not found in map! : " + group);
         }
-
+        
         if( ! nextcloudHandler.getNextcloudGroupIds().contains(group))
         {
           String displayName = attributesMapService.getGroups().get(group);
@@ -224,11 +228,11 @@ public class ApplicationCommands
           nextcloudHandler.getNextcloudGroupIds().add(group);
           createGroupCounter ++;
         }
-
+        
       });
     }
   }
-
+  
   @Command(description = "update group displaynames from config to Nextcloud")
   public void updateGroupDisplaynames()
     throws Throwable
@@ -237,7 +241,7 @@ public class ApplicationCommands
     nextcloudHandler.readNextcloudGroups();
     int updateCounter = 0;
     LOGGER.debug("{} groups in config", attributesMapService.getGroups().size());
-
+    
     for(String groupId : nextcloudHandler.getNextcloudGroupIds())
     {
       String displayname = attributesMapService.getGroups().get(groupId);
@@ -248,10 +252,10 @@ public class ApplicationCommands
         updateCounter ++;
       }
     }
-
+    
     LOGGER.info("{} groups updated", updateCounter);
   }
-
+  
   @Command(description = "update user phonenumbers from LDAP to Nextcloud")
   public void updatePhoneNumbers()
     throws Throwable
@@ -280,7 +284,7 @@ public class ApplicationCommands
       }
     }
   }
-
+  
   @Command(description = "Remove all configured groups from Nextcloud")
   public void deleteAllConfiguredGroups()
     throws Throwable
@@ -289,19 +293,19 @@ public class ApplicationCommands
     deleteGroupCounter = 0;
     attributesMapService.getGroups().forEach((groupId, displayName) ->
     {
-
+      
       if(nextcloudHandler.getNextcloudGroupIds().contains(groupId))
       {
         deleteGroupCounter ++;
         LOGGER.debug("DELETE group ({}) : {}, {}", deleteGroupCounter, groupId, displayName);
         nextcloudHandler.deleteGroup(groupId);
       }
-
+      
     });
   }
-
+  
   private int deleteGroupCounter;
-
+  
   private int createGroupCounter;
-
+  
 }
