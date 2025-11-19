@@ -202,20 +202,12 @@ public class ApplicationCommands
   private void checkGroups(NextcloudCreateUser user)
     throws Throwable
   {
-    LOGGER.debug("size={}", attributesMapService.getGroups().size());
-    
-    LOGGER.debug("Check groups for user {} {}", user.getDisplayName(), user.getUserId());
     if( ! config.isDryRun())
     {
       user.getGroups().forEach(group ->
       {
         if( ! attributesMapService.getGroups().containsKey(group))
         {
-          attributesMapService.getGroups().forEach((key, value) ->
-          {
-            LOGGER.debug("'{}'", key);
-          });
-          LOGGER.debug("'{}'", group);
           LOGGER.error("ERROR: Group '{}' not found in map!", group);
           throw new RuntimeException("ERROR: Group not found in map! : " + group);
         }
