@@ -202,6 +202,9 @@ public class ApplicationCommands
   private void checkGroups(NextcloudCreateUser user)
     throws Throwable
   {
+    LOGGER.debug( "size={}", attributesMapService.getGroups().size());
+    System.exit(0);
+    
     LOGGER.debug("Check groups for user {} {}", user.getDisplayName(), user.getUserId());
     if( ! config.isDryRun())
     {
