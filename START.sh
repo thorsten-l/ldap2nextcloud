@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 
-export JAVA_HOME=`/usr/libexec/java_home -v 17`
+export JAVA_HOME=`/usr/libexec/java_home -v 21`
 mvn -DskipTests=true clean package
-cp target/ldap2zammad.jar .
-./ldap2zammad.jar
-# rm -f ./ldap2zammad.jar
+cp target/ldap2nextcloud.jar .
+./ldap2nextcloud.jar
+# rm -f ./ldap2nextcloud.jar
