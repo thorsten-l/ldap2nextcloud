@@ -78,10 +78,15 @@ public class TestCommands
   public void testListAllUserIds()
     throws Throwable
   {
+    logbackConfig.getL9gLogger().setLevel(Level.DEBUG);
     List<String> users = nextcloudClient.listUsers();
     users.forEach(System.out :: println);
+    System.out.println( "-----------------------\n" 
+      + "users size = " + users.size() + "\n");
     List<String> groups = nextcloudClient.listGroups();
     groups.forEach(System.out :: println);
+    System.out.println( "-----------------------\n" 
+      + "groups size = " + groups.size() + "\n");
   }
 
   @Command(alias = "t3", description = "send test error mail")

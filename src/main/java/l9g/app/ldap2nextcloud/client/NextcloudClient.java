@@ -37,7 +37,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.server.EntityResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -78,7 +77,8 @@ public class NextcloudClient
         return (List)users;
       }
     }
-
+    
+    log.error("ERROR: response = {}", response);
     return new ArrayList<>();
   }
 
@@ -107,6 +107,7 @@ public class NextcloudClient
       }
     }
 
+    log.error("ERROR: response = {}", response);
     return new ArrayList<>();
   }
 
