@@ -335,10 +335,6 @@ public class ApplicationCommands
   {
     log.debug("syncSingleUser");
 
-    logbackConfig.getRootLogger().setLevel(Level.TRACE);
-    logbackConfig.getL9gLogger().setLevel(Level.TRACE);
-    config.setDebug(true);
-
     int updateCounter = 0;
     int createCounter = 0;
     int deleteCounter = 0;
