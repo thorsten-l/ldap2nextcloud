@@ -323,11 +323,92 @@ public class ApplicationCommands
       }
 
     }
-    
+
     LOGGER.info("sync done\nSummary:"
       + "\n  deleted {} user(s)"
       + "\n  ignored {} user(s)",
       deleteCounter, ignoreCounter);
+  }
+
+  @Command(description = "sync single user")
+  public void syncSingleUser(String singleUserId)
+  {
+    log.debug("syncSingleUser");
+
+    logbackConfig.getRootLogger().setLevel(Level.TRACE);
+    logbackConfig.getL9gLogger().setLevel(Level.TRACE);
+    config.setDebug(true);
+
+    int updateCounter = 0;
+    int createCounter = 0;
+    int deleteCounter = 0;
+    int ignoreCounter = 0;
+
+    createGroupCounter = 0;
+
+    nextcloudHandler.readNextcloudGroups();
+    nextcloudHandler.readNextcloudUsers();
+
+    try
+    {
+      ASN1GeneralizedTime timestamp = new ASN1GeneralizedTime(0l); // 01.01.1970, unix time 0
+      ldapHandler.readLdapEntries(timestamp, true);
+
+      try(JavaScriptEngine js = new JavaScriptEngine())
+      {
+        int noEntries = ldapHandler.getLdapEntryMap().size();
+        int entryCounter = 0;
+
+        for(Entry entry : ldapHandler.getLdapEntryMap().values())
+        {
+          entryCounter ++;
+          // LOGGER.debug("{}/{}", entryCounter, noEntries);
+
+          String userId = entry.getAttributeValue(ldapHandler.getLdapUserId());
+
+          if(singleUserId.equals(userId))
+          {
+            log.info("*** sync-single-user User {} found", userId);
+            
+            ArrayList<String> groups = new ArrayList<>();
+            NextcloudCreateUser updateUser = new NextcloudCreateUser();
+            updateUser.setUserId(userId);
+            updateUser.setGroups(groups);
+
+            if(nextcloudHandler.getNextcloudUserIds().contains(userId))
+            {
+              js.getValue().executeVoid("update", updateUser, entry);
+              checkGroups(updateUser);
+              nextcloudHandler.updateUser(updateUser);
+              updateCounter ++;
+            }
+            else
+            {
+              // CREATE
+              js.getValue().executeVoid("create", updateUser, entry);
+              checkGroups(updateUser);
+              nextcloudHandler.createUser(updateUser);
+              createCounter ++;
+            }
+            
+            break;
+          }
+        }
+      }
+
+      LOGGER.info("sync done\nSummary:"
+        + "\n  updated {} user(s)"
+        + "\n  created {} user(s)"
+        + "\n  deleted {} user(s)"
+        + "\n  ignored {} user(s)"
+        + "\n  created {} group(s)",
+        updateCounter, createCounter, deleteCounter, ignoreCounter, createGroupCounter);
+
+    }
+    catch(Throwable t)
+    {
+      log.error("SYNC ERRORR", t);
+    }
   }
 
   private int deleteGroupCounter;

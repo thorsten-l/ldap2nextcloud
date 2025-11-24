@@ -19,6 +19,7 @@ import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unboundid.asn1.ASN1GeneralizedTime;
 import com.unboundid.ldap.sdk.Entry;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import l9g.app.ldap2nextcloud.LogbackConfig;
@@ -81,11 +82,11 @@ public class TestCommands
     logbackConfig.getL9gLogger().setLevel(Level.DEBUG);
     List<String> users = nextcloudClient.listUsers();
     users.forEach(System.out :: println);
-    System.out.println( "-----------------------\n" 
+    System.out.println("-----------------------\n"
       + "users size = " + users.size() + "\n");
     List<String> groups = nextcloudClient.listGroups();
     groups.forEach(System.out :: println);
-    System.out.println( "-----------------------\n" 
+    System.out.println("-----------------------\n"
       + "groups size = " + groups.size() + "\n");
   }
 
@@ -124,33 +125,33 @@ public class TestCommands
     throws Throwable
   {
     log.debug("testGroupsColletor");
-    
+
     ldapHandler.buildGroupsMap();
-    
+
     ldapHandler.getLdapRoleGroupsEntryMap().entrySet().stream()
       .sorted(Map.Entry.comparingByKey())
       .forEach(entry ->
       {
-        System.out.println( "      - " + entry.getKey() + "," + entry.getValue());
+        System.out.println("      - " + entry.getKey() + "," + entry.getValue());
       });
-     
+
     System.out.println("done");
-/*
+    /*
     attributesMapService.getInstitutes().entrySet().stream()
       .sorted(Map.Entry.comparingByKey())
       .forEach(entry ->
       {
         System.out.println("'" + entry.getKey() + "' = '" + entry.getValue() + "'");
       });
-*/
+     */
   }
-  
- @Command(alias = "t5", description = "show all known groups")
+
+  @Command(alias = "t5", description = "show all known groups")
   public void testShowAllKnownGroups()
     throws Throwable
   {
     log.debug("testShowAllKnownGroups");
-    
+
     attributesMapService.getGroups().entrySet().stream()
       .sorted(Map.Entry.comparingByKey())
       .forEach(entry ->
@@ -159,5 +160,4 @@ public class TestCommands
       });
 
   }
-
 }
