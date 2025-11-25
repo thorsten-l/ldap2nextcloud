@@ -163,7 +163,7 @@ public class NextcloudHandler
 
             //updateUser(userId, "displayname", user.getDisplayName());
             updateUser(userId, "address", user.getAddress());
-            //updateUser(userId, "email", user.getEmail());
+            updateUser(userId, "email", user.getEmail());
             updateUser(userId, "phone", user.getPhone());
             updateUser(userId, "website", user.getWebsite());
             updateUser(userId, "organisation", user.getOrganisation());
