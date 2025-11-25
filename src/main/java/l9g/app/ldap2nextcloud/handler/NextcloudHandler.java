@@ -161,12 +161,12 @@ public class NextcloudHandler
             log.debug("update user : {}", user);
             log.debug("nextcloud user : {}", nextcloudUser);
 
-            updateUser(userId, "displayname", user.getDisplayName());
-            updateUser(userId, "address", user.getAddress());
-            // updateUser(userId, "email", user.getEmail());
-            updateUser(userId, "phone", user.getPhone());
-            updateUser(userId, "website", user.getWebsite());
-            updateUser(userId, "organisation", user.getOrganisation());
+            //updateUser(userId, "displayname", user.getDisplayName());
+            //updateUser(userId, "address", user.getAddress());
+            //updateUser(userId, "email", user.getEmail());
+            //updateUser(userId, "phone", user.getPhone());
+            //updateUser(userId, "website", user.getWebsite());
+            //updateUser(userId, "organisation", user.getOrganisation());
 
             // check groups to remove from
             nextcloudUser.getGroups().forEach(group ->
