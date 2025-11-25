@@ -165,8 +165,8 @@ public class NextcloudHandler
             updateUser(userId, "address", user.getAddress());
             //updateUser(userId, "email", user.getEmail());
             updateUser(userId, "phone", user.getPhone());
-            //updateUser(userId, "website", user.getWebsite());
-            //updateUser(userId, "organisation", user.getOrganisation());
+            updateUser(userId, "website", user.getWebsite());
+            updateUser(userId, "organisation", user.getOrganisation());
 
             // check groups to remove from
             nextcloudUser.getGroups().forEach(group ->
