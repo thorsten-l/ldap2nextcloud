@@ -14,30 +14,36 @@
  * limitations under the License.
  *
  *
- * fill new zammad user from ldap entry
+ * fill new nextcloud user from ldap entry
  */
 (
-  function ldap2zammad( mode, zammadUser, ldapEntry, config )
+  function ldap2nextcloud( mode, user, ldapEntry, config )
   {
     // mode : "test", "create, "update"
-    var roles = zammadUser.getRoles();
-    var syncRolesTag = config.getSyncRolesTag();
 
-    zammadUser.setFirstname(ldapEntry.getAttributeValue("givenname"));
-    zammadUser.setLastname(ldapEntry.getAttributeValue("sn"));
-    zammadUser.setEmail(ldapEntry.getAttributeValue("mail"));
-    zammadUser.setPhone(ldapEntry.getAttributeValue("telephoneNumber"));
-    zammadUser.setFax(ldapEntry.getAttributeValue("facsimileTelephoneNumber"));
-    zammadUser.setWeb("https://www.myorg.de");
-    zammadUser.setOrganization("MyOrg");
-    zammadUser.setVerified(true);
+    var groups = nextcloudUser.getGroups();
+    var groupPrefix = "MY_GROUP_PREFIX";
+    groups.add(groupPrefix + ou);
+
+    user.setFirstname(ldapEntry.getAttributeValue("givenname"));
+    user.setLastname(ldapEntry.getAttributeValue("sn"));
+    user.setEmail(ldapEntry.getAttributeValue("mail"));
+    user.setPhone(ldapEntry.getAttributeValue("telephoneNumber"));
+    user.setFax(ldapEntry.getAttributeValue("facsimileTelephoneNumber"));
+    user.setWeb("https://www.myorg.de");
+    user.setOrganization("MyOrg");
+    user.setVerified(true);
 
     if ( "create" === mode || "test" === mode )
     {
       if ( ldapEntry.getAttributeValue("institute") === "CC" )
       {
-        zammadUser.setDepartment( "CC" );
-        roles.push("Agent");
+        user.setDepartment( "CC" );
+        user.setRoles( [ "Agent", "Customer" ] );
+      }
+      else
+      {
+        user.setRoles( [ "Customer" ] ); // array of String
       }
     }
   }

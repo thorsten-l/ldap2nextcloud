@@ -1,6 +1,6 @@
 spring:
   application:
-    name: ldap2zammad
+    name: ldap2nextcloud
 
   profiles:
     active: default

@@ -1,6 +1,6 @@
 # ldap2nextcloud
 
-Create, update and delete zammad user entries from a selected LDAP directory server.
+Create, update and delete Nextcloud user entries from a selected LDAP directory server.
 
 ## LDAP to NextCloud attribute mapping
 
