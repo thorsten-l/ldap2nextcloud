@@ -9,7 +9,7 @@ This `function` will be executed for every entry in the LDAP resultset.
  
 ```javascript
 (
-  function ldap2nextcloud( mode, user, ldapEntry, config )
+  function ldap2nextcloud( mode, nextcloudUser, ldapEntry )
   {
     // mode : "test", "create, "update"
     

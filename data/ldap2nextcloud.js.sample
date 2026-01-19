@@ -17,7 +17,7 @@
  * fill new nextcloud user from ldap entry
  */
 (
-  function ldap2nextcloud( mode, user, ldapEntry, config )
+  function ldap2nextcloud( mode, nextcloudUser, ldapEntry )
   {
     // mode : "test", "create, "update"
 
