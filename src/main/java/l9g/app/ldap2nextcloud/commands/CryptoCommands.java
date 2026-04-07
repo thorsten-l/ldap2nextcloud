@@ -64,8 +64,6 @@ public class CryptoCommands
     @Option(description = "number of chars", required = true) int length)
     throws Throwable
   {
-    LOGGER.debug("passwordGenerator");
-    System.out.println( "random password");
     encrypt(PasswordGenerator.generate(length));
   }
 }

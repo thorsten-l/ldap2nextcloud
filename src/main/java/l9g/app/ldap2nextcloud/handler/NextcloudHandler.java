@@ -49,6 +49,12 @@ public class NextcloudHandler
   @Value("${nextcloud.quota-default:nolimit}")
   String quotaDefault;
 
+  @Value("${nextcloud.delete-enabled.users:false}")
+  private boolean deleteUsersEnabled;
+
+  @Value("${nextcloud.delete-enabled.groups:false}")
+  private boolean deleteGroupsEnabled;
+
   public void readNextcloudGroups()
   {
     log.debug("readNextcloudGroups");
@@ -171,20 +177,21 @@ public class NextcloudHandler
             // check groups to remove from
             nextcloudUser.getGroups().forEach(group ->
             {
-              if( ! user.getGroups().contains(group) 
-              && attributesMapService.getGroups().containsKey(group)) // remove from configurated groups only
+              if( ! user.getGroups().contains(group)
+                && attributesMapService.getGroups().containsKey(group)) // remove from configurated groups only
               {
                 log.debug("REMOVE: user {} from group {}", userId, group);
-                nextcloudClient.userRemoveGroup( userId, group );
+                nextcloudClient.userRemoveGroup(userId, group);
               }
             });
 
             // check groups to add to
-            user.getGroups().forEach(group -> {
-              if ( ! nextcloudUser.getGroups().contains(group))
+            user.getGroups().forEach(group ->
+            {
+              if( ! nextcloudUser.getGroups().contains(group))
               {
                 log.debug("ADD: user {} to group {}", userId, group);
-                nextcloudClient.userAddGroup( userId, group );
+                nextcloudClient.userAddGroup(userId, group);
               }
             });
           }
@@ -200,6 +207,11 @@ public class NextcloudHandler
 
   public void deleteUser(String user)
   {
+    if( ! deleteUsersEnabled)
+    {
+      log.info("DELETE user DISABLED: {}", user);
+      return;
+    }
 
     if(config.isDryRun())
     {
@@ -264,9 +276,15 @@ public class NextcloudHandler
       }
     }
   }
-  
+
   public synchronized void deleteGroup(String groupId)
   {
+    if( ! deleteGroupsEnabled)
+    {
+      log.info("DELETE group DISABLED: {}", groupId);
+      return;
+    }
+
     if(config.isDryRun())
     {
       log.info("DELETE DRY RUN: {}", groupId);

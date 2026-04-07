@@ -345,6 +345,9 @@ public class ApplicationCommands
     nextcloudHandler.readNextcloudGroups();
     nextcloudHandler.readNextcloudUsers();
 
+    config.setDebug(true);
+    logbackConfig.getL9gLogger().setLevel(Level.TRACE);
+
     try
     {
       ASN1GeneralizedTime timestamp = new ASN1GeneralizedTime(0l); // 01.01.1970, unix time 0
