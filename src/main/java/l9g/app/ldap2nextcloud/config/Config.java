@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package l9g.app.ldap2nextcloud;
+package l9g.app.ldap2nextcloud.config;
 
 import lombok.Getter;
 import lombok.Setter;

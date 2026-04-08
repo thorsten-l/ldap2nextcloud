@@ -18,7 +18,7 @@ package l9g.app.ldap2nextcloud.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.Set;
-import l9g.app.ldap2nextcloud.Config;
+import l9g.app.ldap2nextcloud.config.Config;
 import l9g.app.ldap2nextcloud.model.NextcloudCreateUser;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -45,6 +45,8 @@ public class NextcloudHandler
   private final NextcloudClient nextcloudClient;
 
   private final AttributesMapService attributesMapService;
+
+  private final KeyValueStoreHandler keyValueStoreHandler;
 
   @Value("${nextcloud.quota-default:nolimit}")
   String quotaDefault;
@@ -207,11 +209,6 @@ public class NextcloudHandler
 
   public void deleteUser(String user)
   {
-    if( ! deleteUsersEnabled)
-    {
-      log.info("DELETE user DISABLED: {}", user);
-      return;
-    }
 
     if(config.isDryRun())
     {
@@ -219,6 +216,12 @@ public class NextcloudHandler
     }
     else
     {
+      if( ! deleteUsersEnabled)
+      {
+        log.info("DELETE user DISABLED: {}", user);
+        keyValueStoreHandler.incrementUser(user);
+        return;
+      }
 
       log.info("DELETE user: {}", user);
       try
@@ -279,18 +282,19 @@ public class NextcloudHandler
 
   public synchronized void deleteGroup(String groupId)
   {
-    if( ! deleteGroupsEnabled)
-    {
-      log.info("DELETE group DISABLED: {}", groupId);
-      return;
-    }
-
     if(config.isDryRun())
     {
       log.info("DELETE DRY RUN: {}", groupId);
     }
     else
     {
+      if( ! deleteGroupsEnabled)
+      {
+        log.info("DELETE group DISABLED: {}", groupId);
+        keyValueStoreHandler.incrementGroup(groupId);
+        return;
+      }
+
       log.info("DELETE: {}", groupId);
       try
       {

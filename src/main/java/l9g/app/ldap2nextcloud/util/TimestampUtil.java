@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package l9g.app.ldap2nextcloud;
+package l9g.app.ldap2nextcloud.util;
 
 import com.unboundid.asn1.ASN1GeneralizedTime;
 import java.io.BufferedReader;
@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import l9g.app.ldap2nextcloud.Application;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

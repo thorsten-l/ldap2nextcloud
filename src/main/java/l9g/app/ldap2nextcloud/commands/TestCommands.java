@@ -22,7 +22,7 @@ import com.unboundid.ldap.sdk.Entry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import l9g.app.ldap2nextcloud.LogbackConfig;
+import l9g.app.ldap2nextcloud.config.LogbackConfig;
 import l9g.app.ldap2nextcloud.engine.JavaScriptEngine;
 import l9g.app.ldap2nextcloud.handler.LdapHandler;
 import l9g.app.ldap2nextcloud.model.NextcloudCreateUser;
