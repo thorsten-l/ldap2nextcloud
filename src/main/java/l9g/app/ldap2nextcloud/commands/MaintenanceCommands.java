@@ -76,7 +76,7 @@ public class MaintenanceCommands
   {
     if(threshold <= 1)
     {
-      log.error("Threshold must be greater than 1.");
+      log.warn("Threshold must be greater than 1.");
       return;
     }
 
@@ -99,7 +99,7 @@ public class MaintenanceCommands
   {
     if(threshold <= 1)
     {
-      log.error("Threshold must be greater than 1.");
+      log.warn("Threshold must be greater than 1.");
       return;
     }
 
