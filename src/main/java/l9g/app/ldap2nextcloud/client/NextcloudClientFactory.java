@@ -26,12 +26,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import l9g.app.ldap2nextcloud.crypto.EncryptedValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,6 +69,22 @@ public class NextcloudClientFactory
     log.trace("  ocs password = {}", nextcloudOcsPassword);
 
     RestTemplate restTemplate = new RestTemplate();
+
+    // Nextcloud's OCS API serializes an empty PHP array as a JSON array ("[]")
+    // instead of an object ("{}"). This happens e.g. on failed requests
+    // (statuscode 997 "Unauthorised"), where "ocs.data" comes back as "[]".
+    // Without this, Jackson aborts with a cryptic MismatchedInputException
+    // before the OCS status code can even be evaluated. Treating an empty
+    // array as a null object lets the response deserialize so the status
+    // code can be checked and a meaningful error reported.
+    for(HttpMessageConverter<?> converter : restTemplate.getMessageConverters())
+    {
+      if(converter instanceof MappingJackson2HttpMessageConverter jacksonConverter)
+      {
+        jacksonConverter.getObjectMapper()
+          .configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
+      }
+    }
 
     if(nextcloudTrustAllCertificates)
     {

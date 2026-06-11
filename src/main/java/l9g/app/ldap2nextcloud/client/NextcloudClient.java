@@ -16,7 +16,6 @@
 package l9g.app.ldap2nextcloud.client;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,19 +66,16 @@ public class NextcloudClient
     ResponseEntity<OcsResult> response =
       restTemplate.getForEntity(uri, OcsResult.class);
 
-    if(response.getStatusCode() == HttpStatus.OK
-      && response.getBody() != null
-      && response.getBody().getOcs().getMeta().getStatuscode() == 100)
+    OcsResult.Ocs ocs = requireOcsSuccess(response, uri);
+
+    Object users = ocs.getData() != null ? ocs.getData().get("users") : null;
+    if(users instanceof List)
     {
-      Object users = response.getBody().getOcs().getData().get("users");
-      if(users != null && users instanceof List)
-      {
-        return (List)users;
-      }
+      return (List)users;
     }
-    
-    log.error("ERROR: response = {}", response);
-    return new ArrayList<>();
+
+    throw new NextcloudClientException(
+      "Nextcloud OCS response from " + uri + " did not contain a 'users' list: " + response.getBody());
   }
 
   public List<String> listGroups()
@@ -96,19 +92,50 @@ public class NextcloudClient
     ResponseEntity<OcsResult> response =
       restTemplate.getForEntity(uri, OcsResult.class);
 
-    if(response.getStatusCode() == HttpStatus.OK
-      && response.getBody() != null
-      && response.getBody().getOcs().getMeta().getStatuscode() == 100)
+    OcsResult.Ocs ocs = requireOcsSuccess(response, uri);
+
+    Object groups = ocs.getData() != null ? ocs.getData().get("groups") : null;
+    if(groups instanceof List)
     {
-      Object groups = response.getBody().getOcs().getData().get("groups");
-      if(groups != null && groups instanceof List)
-      {
-        return (List)groups;
-      }
+      return (List)groups;
     }
 
-    log.error("ERROR: response = {}", response);
-    return new ArrayList<>();
+    throw new NextcloudClientException(
+      "Nextcloud OCS response from " + uri + " did not contain a 'groups' list: " + response.getBody());
+  }
+
+  /**
+   * Validates that an OCS response was successful (HTTP 200, present body and
+   * OCS status code 100) and returns its "ocs" element. Throws a
+   * {@link NextcloudClientException} with a descriptive message otherwise, so
+   * that an authentication or authorization failure (e.g. statuscode 997
+   * "Unauthorised") aborts the sync instead of silently continuing with empty
+   * data.
+   */
+  private OcsResult.Ocs requireOcsSuccess(ResponseEntity<OcsResult> response, URI uri)
+  {
+    OcsResult body = response.getBody();
+
+    if(response.getStatusCode() != HttpStatus.OK
+      || body == null
+      || body.getOcs() == null
+      || body.getOcs().getMeta() == null)
+    {
+      throw new NextcloudClientException(
+        "Nextcloud OCS request to " + uri + " failed: HTTP " + response.getStatusCode()
+        + ", body=" + body);
+    }
+
+    OcsResult.Meta meta = body.getOcs().getMeta();
+    if(meta.getStatuscode() != 100)
+    {
+      throw new NextcloudClientException(
+        "Nextcloud OCS request to " + uri + " failed: statuscode=" + meta.getStatuscode()
+        + " (" + meta.getMessage() + "). Please verify the OCS credentials"
+        + " (nextcloud.ocs.user / password) and that the account has the required permissions.");
+    }
+
+    return body.getOcs();
   }
 
   @Retryable(retryFor = HttpClientErrorException.TooManyRequests.class, maxAttempts = 5, backoff =
